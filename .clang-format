@@ -1,0 +1,136 @@
+# ========================
+# Basic Formatting
+# ========================
+Language: Cpp
+ColumnLimit: 100
+UseTab: Never
+TabWidth: 4
+IndentWidth: 4
+AccessModifierOffset: -4
+ContinuationIndentWidth: 4
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# ========================
+# Alignment Configuration
+# ========================
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: false
+
+# ========================
+# Brace Wrapping (Custom)
+# ========================
+BreakBeforeBraces: Allman
+
+# ========================
+# Line Breaking Rules
+# ========================
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeInheritanceComma: true
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+BreakConstructorInitializersBeforeComma: false
+BreakStringLiterals: true
+BreakTemplateDeclarations: Yes
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: true
+
+# ========================
+# Short Construct Handling
+# ========================
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# ========================
+# Parameter Packing
+# ========================
+BinPackArguments: false
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+ExperimentalAutoDetectBinPacking: true
+
+# ========================
+# Constructor Formatting
+# ========================
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerIndentWidth: 4
+
+# ========================
+# Namespace Handling
+# ========================
+NamespaceIndentation: Inner
+CompactNamespaces: false
+FixNamespaceComments: true
+
+# ========================
+# Include Management
+# ========================
+SortIncludes: true
+IncludeCategories:
+    - Priority: 2
+      Regex: ^"(llvm|llvm-c|clang|clang-c)/
+    - Priority: 3
+      Regex: ^(<|"(gtest|gmock|isl|json)/)
+    - Priority: 1
+      Regex: .*
+IncludeIsMainRegex: (Test)?$
+
+# ========================
+# Comment Formatting
+# ========================
+ReflowComments: true
+CommentPragmas: "^ IWYU pragma:"
+SpacesBeforeTrailingComments: 0
+
+# ========================
+# Whitespace Rules
+# ========================
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# ========================
+# Special Cases
+# ========================
+ForEachMacros:
+    - foreach
+    - Q_FOREACH
+    - BOOST_FOREACH
+IndentCaseLabels: false
+IndentWrappedFunctionNames: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 2
+SortUsingDeclarations: false
+
+# ========================
+# Language Specific
+# ========================
+Cpp11BracedListStyle: false
+JavaScriptQuotes: Leave
+JavaScriptWrapImports: true
+ObjCBlockIndentWidth: 7
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: false
+BreakAfterJavaFieldAnnotations: true
+
+# ========================
+# Technical Controls
+# ========================
+DisableFormat: false
+MacroBlockBegin: ""
+MacroBlockEnd: ""

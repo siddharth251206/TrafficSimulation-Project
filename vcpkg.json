@@ -1,0 +1,9 @@
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "A modern C++23 project.",
+  "dependencies": [
+    "catch2",
+    "sfml"
+  ]
+}
