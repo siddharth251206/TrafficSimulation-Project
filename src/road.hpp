@@ -11,17 +11,17 @@ class Road
 {
 public:
     // Construct a road based on given start and end points.
-    Road(const sf::Vector2f& start, const sf::Vector2f& end);
+    Road(const sf::Vector2f &start, const sf::Vector2f &end);
     // Returns the unit vector direction of the road.
-    [[nodiscard]] const sf::Vector2f& get_direction() const noexcept;
+    [[nodiscard]] const sf::Vector2f &get_direction() const noexcept;
     // Gets the coordinates of the point in road at 'position' distance from the start.
     [[nodiscard]] sf::Vector2f get_point_at_distance(float position) const noexcept;
     // Updates the position of all cars in the road.
     void update(sf::Time elapsed);
     // Draws the road shape onto the world.
-    void draw(sf::RenderWindow& window) const;
+    void draw(sf::RenderWindow &window) const;
     // Add a car to the road.
-    void add(const Car& car);
+    void add(const Car &car);
 
 private:
     // Coordinates in the world where the road 'starts'.
