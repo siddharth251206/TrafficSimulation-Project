@@ -1,5 +1,5 @@
-#include "car.h"
-#include "road.h"
+#include "car.hpp"
+#include "road.hpp"
 
 Car::Car(Road* road) : m_position(road->get_point_at_distance(0)), m_road(road) {}
 void Car::update(const sf::Time elapsed)
