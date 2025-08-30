@@ -1,6 +1,5 @@
 #include "road.hpp"
 
-
 #include <SFML/Graphics.hpp>
 #include <algorithm>
 

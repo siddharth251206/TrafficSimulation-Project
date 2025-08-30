@@ -8,8 +8,6 @@ class Road;
 class Car
 {
 public:
-    // Default constructor for Car when no road is mentioned.
-    Car() = default;
     // Create a car and make it belong to a particular road.
     explicit Car(Road* road);
     // Updates the internal details of the car.

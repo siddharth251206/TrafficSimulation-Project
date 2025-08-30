@@ -1,7 +1,7 @@
 #include "car.hpp"
 #include "road.hpp"
 
-Car::Car(Road* road) : m_position(road->get_point_at_distance(0)), m_road(road) {}
+Car::Car(Road *road) : m_position(road->get_point_at_distance(0)), m_road(road) {}
 void Car::update(const sf::Time elapsed)
 {
     const float time = elapsed.asSeconds();
@@ -11,7 +11,4 @@ void Car::update(const sf::Time elapsed)
     m_model.setPosition(m_position);
 }
 
-void Car::draw(sf::RenderWindow& window) const
-{
-    window.draw(m_model);
-}
+void Car::draw(sf::RenderWindow &window) const { window.draw(m_model); }
