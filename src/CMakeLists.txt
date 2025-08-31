@@ -1,9 +1,11 @@
 add_executable(${PROJECT_NAME}_app
         main.cpp
         car.cpp
-        car.h
+        car.hpp
         road.cpp
-        road.h
+        road.hpp
+	app_utility.hpp
+	app_utility.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app

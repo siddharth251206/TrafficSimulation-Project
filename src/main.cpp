@@ -2,15 +2,18 @@
 
 #include <SFML/Graphics.hpp>
 #include <algorithm>
+#include <random>
 
 int main()
 {
+    std::random_device rd;
     constexpr unsigned int width = 1200;
     constexpr unsigned int height = 700;
     sf::RenderWindow window{ sf::VideoMode{ { width, height } }, "Traffic Simulator" };
-    Road road{ { 100, 100 }, { 600, 600 } };
-    road.add(Car{ &road });
-    road.add(Car{ &road });
+    Road road_1{ { 100, 100 }, { 600, 600 } };
+    Road road_2{ { 600, 600 }, { 1000, 300 } };
+    road_1.add(Car{ &road_1 });
+
 
     sf::Clock stopwatch;
     stopwatch.start();
@@ -23,8 +26,10 @@ int main()
         }
         window.clear(sf::Color::Black);
 
-        road.update(stopwatch.getElapsedTime());
-        road.draw(window);
+        road_1.update(stopwatch.getElapsedTime());
+        road_2.update(stopwatch.getElapsedTime());
+        road_1.draw(window);
+        road_2.draw(window);
 
         stopwatch.restart();
         window.display();
