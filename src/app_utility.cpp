@@ -1,10 +1,15 @@
 #include "app_utility.hpp"
 #include <random>
 
-template<typename T>
-T& Singleton<T>::instance()
+RNG& RNG::instance()
 {
-    static T object;
+    static RNG object;
+    return object;
+}
+
+Junction_Table& Junction_Table::instance()
+{
+    static Junction_Table object;
     return object;
 }
 
@@ -16,11 +21,14 @@ size_t RNG::getIndex(size_t lo, size_t hi)
     return dis(gen);
 }
 
-void Junction_Table::insert_junction(const Junction &j){
-    Junction_Table::instance().junction_list.insert(j.get_location());
-}
+size_t Junction_Hash::operator()(const sf::Vector2f& j) const noexcept
+    {
+        return std::hash<float>{}(j.x) ^ (std::hash<float>{}(j.y) << 1);
+    }
 
-bool Junction_Table::search_junction(sf::Vector2f location){
-    auto it = Junction_Table::instance().junction_list.find(location);
-    return true; // I will deal with this next, stop pointing out things :/
+void Junction_Table::insert_junction(const Junction& j) { junction_list.insert(j.get_location()); }
+
+bool Junction_Table::search_junction(sf::Vector2f location) const
+{
+    return junction_list.find(location) != junction_list.end();
 }
