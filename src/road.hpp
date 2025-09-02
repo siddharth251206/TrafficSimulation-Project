@@ -52,8 +52,8 @@ private:
 class Junction
 {
 public:
-    // Construct a junction with the given coordinates.
-    Junction(const sf::Vector2f& location);
+    // Wrapper around the protected constructor which also adds the junction to the hash table.
+    static Junction& create(const sf::Vector2f& location);
     // Receive a car into the junction.
     void accept_car(Car* entering_car);
     // Choose a road to travel to from the given junction.
@@ -63,7 +63,11 @@ public:
     // Get the location of the junction.
     [[nodiscard]] const sf::Vector2f& get_location() const;
     // Compares two junctions.
-    bool operator==(const Junction &other) const noexcept;
+    bool operator==(const Junction& other) const noexcept;
+
+protected:
+    // Construct a junction with the given coordinates.
+    Junction(const sf::Vector2f& location);
 
 private:
     // Car which currently exists in the junction.

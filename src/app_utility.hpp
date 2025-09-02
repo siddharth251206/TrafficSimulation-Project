@@ -1,13 +1,15 @@
 #pragma once
 
-#include "road.hpp"
+#include <SFML/System/Vector2.hpp>
 #include <random>
-#include <unordered_set>
+#include <unordered_map>
+
+class Junction;
 
 class RNG
 {
 private:
-    RNG() : gen(std::random_device{}()) {}// private constructor
+    RNG();
     ~RNG() = default;
 
     // Prevent copying/moving
@@ -29,9 +31,9 @@ struct Junction_Hash
     size_t operator()(const sf::Vector2f& j) const noexcept;
 };
 
-
 class Junction_Table
 {
+    friend class Junction;
 private:
     Junction_Table() = default;
     ~Junction_Table() = default;
@@ -42,10 +44,11 @@ private:
     Junction_Table& operator=(const Junction_Table&) = delete;
     Junction_Table& operator=(Junction_Table&&) = delete;
 
-    std::unordered_set<sf::Vector2f, Junction_Hash> junction_list;
+    std::unordered_map<sf::Vector2f, Junction, Junction_Hash> junction_list;
 
 public:
     static Junction_Table& instance();
-    void insert_junction(const Junction& j);
-    bool search_junction(sf::Vector2f location) const;
+    Junction& insert_junction(Junction& j);
+    const Junction* search_junction(sf::Vector2f location) const;
+    void delete_junction(const Junction& j);
 };

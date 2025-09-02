@@ -41,6 +41,12 @@ Junction* Road::getEndJunction() const { return m_junctions.second; }
 
 Junction::Junction(const sf::Vector2f& location) : j_position(location) {}
 
+Junction& Junction::create(const sf::Vector2f& location)
+{
+    Junction x(location);
+    return Junction_Table::instance().insert_junction(x);
+}
+
 void Junction::accept_car(Car* entering_car) { j_car_entered = entering_car; }
 
 bool Junction::handle_car_redirection()
