@@ -1,22 +1,42 @@
 #include "road.hpp"
-
-#include <SFML/Graphics.hpp>
+#include "car.hpp"
+#include "junction.hpp"
+#include <SFML/Graphics.hpp> 
+#include <memory>
 #include <algorithm>
 #include <random>
 
 int main()
 {
-    std::random_device rd;
-    constexpr unsigned int width = 1200;
-    constexpr unsigned int height = 700;
+    // sf::RenderWindow window(sf::VideoMode(1200, 700), "Traffic Simulator");
+    constexpr unsigned int width = 1100;
+    constexpr unsigned int height =1000;
     sf::RenderWindow window{ sf::VideoMode{ { width, height } }, "Traffic Simulator" };
-    Road road_1{ { 100, 100 }, { 600, 600 } };
-    Road road_2{ { 600, 600 }, { 1000, 300 } };
-    road_1.add(Car{ &road_1 });
+
+    // Create junction
+    Junction junction({600.f, 600.f});
+
+    // Create roads
+    Road road1({100.f, 100.f}, {600.f, 600.f});
+    Road road2({600.f, 600.f}, {1000.f, 300.f});
+    Road road3({600.f, 600.f}, {1000.f, 800.f});
+
+    // Connect roads to junction
+    junction.add_road(&road1);
+    junction.add_road(&road2);
+    junction.add_road(&road3);
+
+    // Set end junction
+    road1.setEndJunction(&junction);
+    road2.setEndJunction(nullptr); // dead-end
+    road3.setEndJunction(nullptr);
+
+    // Add car to first road
+    auto car1 = std::make_unique<Car>(&road1);
+    road1.add(std::move(car1));
 
 
     sf::Clock stopwatch;
-    stopwatch.start();
     while (window.isOpen())
     {
         while (const std::optional<sf::Event> event = window.pollEvent())
@@ -26,14 +46,14 @@ int main()
         }
         window.clear(sf::Color::Black);
 
-        road_1.update(stopwatch.getElapsedTime());
-        road_2.update(stopwatch.getElapsedTime());
-        road_1.draw(window);
-        road_2.draw(window);
+        road1.update(stopwatch.getElapsedTime());
+        road2.update(stopwatch.getElapsedTime());
+        road3.update(stopwatch.getElapsedTime());
+        road1.draw(window);
+        road2.draw(window);
+        road3.draw(window);
 
         stopwatch.restart();
         window.display();
     }
-
-    return 0;
 }

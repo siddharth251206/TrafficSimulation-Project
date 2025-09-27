@@ -1,76 +1,69 @@
 #include "road.hpp"
-#include "app_utility.hpp"
-#include <random>
+#include "junction.hpp"
+#include <utility>
+#include <SFML/Graphics.hpp>   // For sf::VertexArray, sf::Vertex
+#include <cmath>               // For sqrt in direction calculation
+#include <memory>              // For unique_ptr
 
-// Road methods
 
 Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
-    : m_start(start), m_end(end), m_direction((end - start).normalized()),
-      m_model(sf::PrimitiveType::Lines, 2), m_length((end - start).length())
+    : m_start(start), m_end(end),
+      m_model(sf::PrimitiveType::Lines, 2)
 {
+    // Compute vector from start to end
+    sf::Vector2f diff = end - start;
+
+    // Compute length
+    m_length = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+
+    // Normalize direction
+    if (m_length != 0)
+        m_direction = diff / m_length; // now safe because m_length is float
+    else
+        m_direction = {0.f, 0.f};
+
+    // Set vertices for drawing
     m_model[0] = sf::Vertex{ m_start };
     m_model[1] = sf::Vertex{ m_end };
 }
 
-const sf::Vector2f& Road::get_direction() const noexcept { return m_direction; }
-
-sf::Vector2f Road::get_point_at_distance(const float position) const noexcept
+void Road::add(std::unique_ptr<Car> car)
 {
-    return m_start + position * m_direction;
+    m_cars.push_back(std::move(car));
 }
 
-void Road::update(const sf::Time elapsed)
+void Road::update(sf::Time elapsed)
 {
-    for (auto& car : m_cars)
-        car.update(elapsed);
+    for (auto it = m_cars.begin(); it != m_cars.end();)
+    {
+        (*it)->update(elapsed);
+
+        if ((*it)->m_relative_distance >= m_length)
+        {
+            (*it)->m_relative_distance = m_length;
+            Junction* end_junction = m_junctions.second;
+            if (end_junction)
+            {
+                end_junction->accept_car(std::move(*it)); // Transfer ownership
+                end_junction->handle_car_redirection();   // Move to next road
+                it = m_cars.erase(it);                    // Remove from this road
+            }
+            else
+            {
+                (*it)->m_speed = 0.f; // Dead-end: stop the car
+                ++it;
+            }
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 void Road::draw(sf::RenderWindow& window) const
 {
     window.draw(m_model);
     for (const auto& car : m_cars)
-        car.draw(window);
-}
-void Road::add(const Car& car) { m_cars.push_back(car); }
-
-float Road::getLength() const { return m_length; }
-
-Junction* Road::getEndJunction() const { return m_junctions.second; }
-
-// Junction Methods
-
-Junction::Junction(const sf::Vector2f& location) : j_position(location) {}
-
-Junction& Junction::create(const sf::Vector2f& location)
-{
-    Junction x(location);
-    return Junction_Table::instance().insert_junction(x);
-}
-
-void Junction::accept_car(Car* entering_car) { j_car_entered = entering_car; }
-
-bool Junction::handle_car_redirection()
-{
-    if (!j_car_entered || j_road_list.size() <= 1)
-        return false;
-    else
-    {
-        Road* new_road = nullptr;
-        do
-        {
-            new_road = &j_road_list[RNG::instance().getIndex(0, j_road_list.size())];
-        } while (new_road != j_car_entered->m_road);
-        j_car_entered->m_road = new_road;
-    }
-    j_car_entered = nullptr;
-    return true;
-}
-
-void Junction::add_road(const Road& new_road) { j_road_list.push_back(new_road); }
-
-const sf::Vector2f& Junction::get_location() const { return j_position; }
-
-bool Junction::operator==(const Junction& other) const noexcept
-{
-    return (j_position == other.j_position);
+        car->draw(window);
 }

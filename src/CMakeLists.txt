@@ -6,6 +6,8 @@ add_executable(${PROJECT_NAME}_app
         road.hpp
 	app_utility.hpp
 	app_utility.cpp
+  junction.cpp
+  junction.hpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app
