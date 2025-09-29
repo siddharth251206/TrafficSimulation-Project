@@ -10,7 +10,7 @@ int main()
 {
     // sf::RenderWindow window(sf::VideoMode(1200, 700), "Traffic Simulator");
     constexpr unsigned int width = 1100;
-    constexpr unsigned int height =1000;
+    constexpr unsigned int height = 1000;
     sf::RenderWindow window{ sf::VideoMode{ { width, height } }, "Traffic Simulator" };
 
     // Create junction
