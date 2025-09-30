@@ -1,15 +1,14 @@
 #include "road.hpp"
 #include "junction.hpp"
 #include <SFML/Graphics.hpp>
-#include <cmath>
-#include <memory>
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <memory>
 #include <vector>
 
 Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
-    : m_start(start), m_end(end),
-      m_model(sf::PrimitiveType::Lines, 2)
+    : m_start(start), m_end(end), m_model(sf::PrimitiveType::Lines, 2)
 {
     // Compute vector from start to end
     sf::Vector2f diff = end - start;
@@ -21,17 +20,14 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
     if (m_length != 0)
         m_direction = diff / m_length;
     else
-        m_direction = {0.f, 0.f};
+        m_direction = { 0.f, 0.f };
 
     // Set vertices for drawing
     m_model[0] = sf::Vertex{ m_start };
     m_model[1] = sf::Vertex{ m_end };
 }
 
-void Road::add(std::unique_ptr<Car> car)
-{
-    m_cars.push_back(std::move(car));
-}
+void Road::add(std::unique_ptr<Car> car) { m_cars.push_back(std::move(car)); }
 
 float Road::get_rearmost_distance() const
 {
@@ -47,82 +43,71 @@ float Road::get_rearmost_distance() const
 
 void Road::update(sf::Time elapsed)
 {
-    // Sort cars by descending relative distance (leaders first)
-    std::vector<Car*> sorted_cars;
-    for (auto& c : m_cars)
-        sorted_cars.push_back(c.get());
-
-    std::sort(sorted_cars.begin(), sorted_cars.end(), [](const Car* a, const Car* b) {
-        return a->m_relative_distance > b->m_relative_distance;
-    });
-
-    // Determine if end is blocked
-    bool end_blocked = false;
-    if (auto* j = getEndJunction())
-        end_blocked = j->is_blocked();
-
-    // Calculate new speeds for each car
-    std::vector<float> new_speeds(sorted_cars.size(), 100.f);
-    for (size_t i = 0; i < sorted_cars.size(); ++i)
+    constexpr float cruising_speed = 100.0;
+    // An obstacle is either a car ahead or the end of road
+    struct Obstacle
     {
-        Car* car = sorted_cars[i];
-        float leader_dist = std::numeric_limits<float>::infinity();
-        float leader_speed = 100.f;
+        float position = std::numeric_limits<float>::infinity();
+        float speed = cruising_speed;
+    };
 
-        // Consider road end as potential leader
-        if (end_blocked)
-        {
-            leader_dist = m_length;
-            leader_speed = 0.f;
-        }
+    Obstacle road_end;
+    if (Junction* end_junction = getEndJunction();
+        end_junction != nullptr && end_junction->is_blocked())
+    {
+        road_end = { .position = m_length, .speed = 0.0F };
+    }
 
-        // If there's a leader car ahead
+    std::vector<float> target_speeds;
+    target_speeds.reserve(m_cars.size());
+
+    for (size_t i = 0; i < m_cars.size(); ++i)
+    {
+        const auto& current_car = m_cars[i];
+        Obstacle obstacle = road_end;
+
+        // If there's a car in front, and it's too close -> it becomes the obstacle
         if (i > 0)
         {
-            Car* leader_car = sorted_cars[i - 1];
-            float car_to_leader_dist = leader_car->m_relative_distance - car->m_relative_distance;
-            if (car_to_leader_dist < leader_dist - car->m_relative_distance)
+            if (const auto& car_ahead = m_cars[i - 1];
+                car_ahead->m_relative_distance < obstacle.position)
             {
-                leader_dist = leader_car->m_relative_distance;
-                leader_speed = leader_car->m_speed;
+                obstacle = { .position = car_ahead->m_relative_distance,
+                                   .speed = car_ahead->m_speed };
             }
         }
 
-        float dist_to_leader = leader_dist - car->m_relative_distance;
-        if (dist_to_leader < SAFE_GAP)
-            new_speeds[i] = leader_speed;
+        // Speed of car = speed of obstacle if too close, else cruising speed
+        const float distance_to_obstacle = obstacle.position - current_car->m_relative_distance;
+        target_speeds.push_back(distance_to_obstacle < SAFE_GAP ? obstacle.speed : 100.0F);
     }
 
-    // Apply new speeds
-    for (size_t i = 0; i < sorted_cars.size(); ++i)
-        sorted_cars[i]->m_speed = new_speeds[i];
-
-    // Update positions
-    for (auto& car : m_cars)
-        car->update(elapsed);
-
-    // Check for cars reaching the end
-    for (auto it = m_cars.begin(); it != m_cars.end();)
+    for (size_t i = 0; i < m_cars.size(); ++i)
     {
-        if ((*it)->m_relative_distance >= m_length)
-        {
-            (*it)->m_relative_distance = m_length;
-            if (auto* j = getEndJunction())
-            {
-                j->accept_car(std::move(*it));
-                it = m_cars.erase(it);
-            }
-            else
-            {
-                (*it)->m_speed = 0.f;
-                ++it;
-            }
-        }
-        else
-        {
-            ++it;
-        }
+        m_cars[i]->m_speed = target_speeds[i];
+        m_cars[i]->update(elapsed);
     }
+
+    // Transfer cars from road to junction (if the conditions are met)
+    std::erase_if(
+        m_cars,
+        [&](std::unique_ptr<Car>& car)
+        {
+            if (car->m_relative_distance < m_length)
+                return false;
+            car->m_relative_distance = m_length;
+
+            Junction* end_junction = getEndJunction();
+            if (!end_junction)
+            {
+                car->m_speed = 0.0F;
+                return false;
+            }
+
+            end_junction->accept_car(std::move(car));
+            return true;
+        }
+    );
 }
 
 void Road::draw(sf::RenderWindow& window) const
@@ -131,4 +116,3 @@ void Road::draw(sf::RenderWindow& window) const
     for (const auto& car : m_cars)
         car->draw(window);
 }
-
