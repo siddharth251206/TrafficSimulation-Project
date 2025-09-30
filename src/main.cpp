@@ -16,8 +16,8 @@ int main()
     Junction junction({600.f, 600.f});
 
     // Create roads: two incoming, one outgoing
-    Road road1({100.f, 100.f}, {600.f, 600.f}); // Incoming
-    Road road2({1000.f, 300.f}, {600.f, 600.f}); // Incoming (reversed direction)
+    Road road1({200.f, 600.f}, {600.f, 600.f}); // Incoming
+    Road road2({1000.f, 600.f}, {600.f, 600.f}); // Incoming (reversed direction)
     Road road3({600.f, 600.f}, {500.f, 100.f}); // Outgoing
 
     // Connect roads to junction
@@ -35,8 +35,8 @@ int main()
     road1.add(std::move(car1));
 
     // Spawn logic for additional cars on road1
-    int max_cars = 3; // Total cars to spawn on road1, including the first
-    int spawned = 1;  // First car already added
+    // int max_cars = 3; // Total cars to spawn on road1, including the first
+    // int spawned = 1;  // First car already added
 
     // One car on road2
     auto car2 = std::make_unique<Car>(&road2);
@@ -59,12 +59,12 @@ int main()
         road3.update(elapsed);
 
         // Spawn new car on road1 if conditions met
-        if (spawned < max_cars && (road1.is_empty() || road1.get_rearmost_distance() > Road::SAFE_GAP))
-        {
-            auto new_car = std::make_unique<Car>(&road1);
-            road1.add(std::move(new_car));
-            spawned++;
-        }
+        // if (spawned < max_cars && (road1.is_empty() || road1.get_rearmost_distance() > Road::SAFE_GAP))
+        // {
+        //     auto new_car = std::make_unique<Car>(&road1);
+        //     road1.add(std::move(new_car));
+        //     spawned++;
+        // }
 
         road1.draw(window);
         road2.draw(window);
