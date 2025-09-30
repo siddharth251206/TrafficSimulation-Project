@@ -1,16 +1,19 @@
 #pragma once
-#include "road.hpp"
+
 #include "car.hpp"
-#include <vector>
 #include <memory>
 #include <queue>
+#include <vector>
+
+// Forward declaration
+class Road;
 
 class Junction
 {
 public:
-    Junction(const sf::Vector2f& location) : j_position(location) {}
+    explicit Junction(const sf::Vector2f& location) : j_position(location) {}
 
-    void add_road(Road* road) { j_road_list.push_back(road); }
+    void add_road(const std::shared_ptr<Road>& road);
 
     void accept_car(std::unique_ptr<Car> car);
     void update(sf::Time elapsed);
@@ -22,10 +25,9 @@ public:
 private:
     sf::Vector2f j_position;
     std::unique_ptr<Car> j_car = nullptr;
-    std::vector<Road*> j_road_list;
+    std::vector<std::weak_ptr<Road>> j_road_list;
     std::queue<std::unique_ptr<Car>> j_car_queue;
     bool j_is_occupied = false;
     float j_crossing_timer = 0.f;
-    static constexpr float CROSSING_DELAY = 0.5f; // Time (seconds) for a car to cross junction
+    static constexpr float CROSSING_DELAY = 0.5f;// Seconds for a car to cross junction
 };
-

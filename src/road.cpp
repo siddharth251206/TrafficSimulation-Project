@@ -41,9 +41,26 @@ float Road::get_rearmost_distance() const
     return min_dist;
 }
 
+Junction* Road::getEndJunction() const
+{
+    if (const auto j_sptr = m_junctions.second.lock())
+        return j_sptr.get();
+
+    return nullptr;
+}
+
+void Road::setStartJunction(const std::shared_ptr<Junction>& junction)
+{
+    m_junctions.first = junction;
+}
+void Road::setEndJunction(const std::shared_ptr<Junction>& junction)
+{
+    m_junctions.second = junction;
+}
+
 void Road::update(sf::Time elapsed)
 {
-    constexpr float cruising_speed = 100.0;
+    constexpr float cruising_speed = 100.0F;
     // An obstacle is either a car ahead or the end of road
     struct Obstacle
     {
@@ -52,7 +69,7 @@ void Road::update(sf::Time elapsed)
     };
 
     Obstacle road_end;
-    if (Junction* end_junction = getEndJunction();
+    if (const Junction* end_junction = getEndJunction();
         end_junction != nullptr && end_junction->is_blocked())
     {
         road_end = { .position = m_length, .speed = 0.0F };
@@ -73,7 +90,7 @@ void Road::update(sf::Time elapsed)
                 car_ahead->m_relative_distance < obstacle.position)
             {
                 obstacle = { .position = car_ahead->m_relative_distance,
-                                   .speed = car_ahead->m_speed };
+                             .speed = car_ahead->m_speed };
             }
         }
 

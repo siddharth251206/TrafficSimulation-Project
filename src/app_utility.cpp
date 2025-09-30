@@ -1,5 +1,4 @@
 #include "app_utility.hpp"
-#include "junction.hpp"
 #include <functional>
 
 // =================== RNG ===================
@@ -14,6 +13,8 @@ RNG::RNG() : gen(std::random_device{}()) {}
 
 size_t RNG::getIndex(size_t lo, size_t hi)
 {
+    if (lo > hi)
+        return lo;
     std::uniform_int_distribution<size_t> dis(lo, hi);
     return dis(gen);
 }
@@ -22,33 +23,9 @@ size_t RNG::getIndex(size_t lo, size_t hi)
 
 size_t Junction_Hash::operator()(const sf::Vector2f& j) const noexcept
 {
-    // Simple XOR hash combining x and y
-    return std::hash<float>{}(j.x) ^ (std::hash<float>{}(j.y) << 1);
-}
-
-// =================== Junction_Table ===================
-
-Junction_Table& Junction_Table::instance()
-{
-    static Junction_Table object;
-    return object;
-}
-
-std::shared_ptr<Junction> Junction_Table::insert_junction(std::shared_ptr<Junction> j)
-{
-    junction_list[j->get_location()] = j;
-    return j;
-}
-
-std::shared_ptr<Junction> Junction_Table::search_junction(sf::Vector2f location) const
-{
-    auto it = junction_list.find(location);
-    if (it != junction_list.end())
-        return it->second;
-    return nullptr;
-}
-
-void Junction_Table::delete_junction(sf::Vector2f location)
-{
-    junction_list.erase(location);
+    // A common way to combine hashes for a 2D vector
+    size_t h1 = std::hash<float>{}(j.x);
+    size_t h2 = std::hash<float>{}(j.y);
+    // A good hash combination formula to reduce collisions
+    return h1 ^ (h2 << 1);
 }
