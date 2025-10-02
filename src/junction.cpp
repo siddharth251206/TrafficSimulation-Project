@@ -38,12 +38,12 @@ void Junction::handle_car_redirection()
 
     if (j_roads_outgoing.empty())
     {
-        in_car = nullptr;// car disappears if there's no outgoing road
+        in_car->m_speed = 0.f;
         return;
     }
 
     const size_t idx = RNG::instance().getIndex(0, j_roads_outgoing.size() - 1);
-    Road* next_road = j_roads_outgoing[idx].lock().get();
+    std::shared_ptr<Road> next_road = j_roads_outgoing[idx].lock();
 
     in_car->m_relative_distance = 0.0F;
     in_car->m_road = next_road;

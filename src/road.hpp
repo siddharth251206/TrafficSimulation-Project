@@ -19,7 +19,7 @@ public:
     float getLength() const { return m_length; }
     const sf::Vector2f& get_direction() const { return m_direction; }
 
-    Junction* getEndJunction() const;
+    std::weak_ptr<Junction> getEndJunction() const;
     void setEndJunction(const std::shared_ptr<Junction>& junction);
     void setStartJunction(const std::shared_ptr<Junction>& junction);
 

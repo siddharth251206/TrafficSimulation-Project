@@ -19,13 +19,13 @@ int main()
     traffic_map.add_road({ 500.f, 100.f }, { 1000.f, 600.f });
 
 
-    if (Road* road1 = traffic_map.get_road(0))
+    if (std::shared_ptr<Road> road1 = traffic_map.get_road(0).lock())
         road1->add(std::make_unique<Car>(road1));
-    if (Road* road2 = traffic_map.get_road(1))
+    if (std::shared_ptr<Road> road2 = traffic_map.get_road(1).lock())
         road2->add(std::make_unique<Car>(road2));
-    if (Road* road3 = traffic_map.get_road(2))
+    if (std::shared_ptr<Road> road3 = traffic_map.get_road(2).lock())
         road3->add(std::make_unique<Car>(road3));
-    if (Road* road4 = traffic_map.get_road(3))
+    if (std::shared_ptr<Road> road4 = traffic_map.get_road(3).lock())
         road4->add(std::make_unique<Car>(road4));
 
 

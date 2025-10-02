@@ -49,11 +49,11 @@ void TrafficMap::draw(sf::RenderWindow& window) const
     // }
 }
 
-Road* TrafficMap::get_road(size_t index) const
+std::weak_ptr<Road> TrafficMap::get_road(size_t index) const
 {
     if (index < m_roads.size())
-        return m_roads[index].get();
-    return nullptr;
+        return m_roads[index];
+    return {};
 }
 
 void TrafficMap::clear()

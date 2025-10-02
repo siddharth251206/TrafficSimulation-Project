@@ -28,12 +28,9 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
 
 void Road::add(std::unique_ptr<Car> car) { m_cars.push_back(std::move(car)); }
 
-Junction* Road::getEndJunction() const
+std::weak_ptr<Junction> Road::getEndJunction() const
 {
-    if (const auto j_sptr = m_junctions.second.lock())
-        return j_sptr.get();
-
-    return nullptr;
+    return m_junctions.second.lock();
 }
 
 void Road::setStartJunction(const std::shared_ptr<Junction>& junction)
@@ -56,7 +53,7 @@ void Road::update(sf::Time elapsed)
     };
 
     Obstacle road_end;
-    if (const Junction* end_junction = getEndJunction();
+    if (std::shared_ptr<Junction> end_junction = getEndJunction().lock();
         end_junction != nullptr && end_junction->is_blocked())
     {
         road_end = { .position = m_length, .speed = 0.0F };
@@ -97,7 +94,7 @@ void Road::update(sf::Time elapsed)
                 return false;
             car->m_relative_distance = m_length;
 
-            Junction* end_junction = getEndJunction();
+            std::shared_ptr<Junction> end_junction = getEndJunction().lock();
             if (!end_junction)
             {
                 car->m_speed = 0.0F;

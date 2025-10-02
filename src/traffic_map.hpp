@@ -29,7 +29,7 @@ public:
     void draw(sf::RenderWindow& window) const;
 
     // Retrieves road by its index in the storage vector
-    Road* get_road(size_t index) const;
+    std::weak_ptr<Road> get_road(size_t index) const;
 
     // Clears all roads and junctions from the map
     void clear();
