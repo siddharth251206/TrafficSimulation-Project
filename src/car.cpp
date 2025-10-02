@@ -1,7 +1,7 @@
-
+#include <SFML/Graphics.hpp>
+#include <memory>
 #include "car.hpp"
 #include "road.hpp"
-#include "junction.hpp"
 
 Car::Car(std::weak_ptr<Road> road) : m_road(road)
 {
@@ -20,7 +20,7 @@ void Car::update(sf::Time elapsed)
     // Position update
     if(auto road_ptr = m_road.lock())
         m_position = road_ptr->get_point_at_distance(m_relative_distance);
-        
+
     m_model.setPosition(m_position);
 }
 

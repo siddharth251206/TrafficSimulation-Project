@@ -1,3 +1,4 @@
+#include "car.hpp"
 #include "junction.hpp"
 #include "app_utility.hpp"
 #include "road.hpp"

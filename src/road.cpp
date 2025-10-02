@@ -3,6 +3,7 @@
 #include <limits>
 #include <memory>
 #include <vector>
+#include "car.hpp"
 #include "road.hpp"
 #include "junction.hpp"
 
