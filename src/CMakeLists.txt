@@ -8,6 +8,8 @@ add_executable(${PROJECT_NAME}_app
 	app_utility.cpp
   junction.cpp
   junction.hpp
+		traffic_map.cpp
+		traffic_map.hpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app
