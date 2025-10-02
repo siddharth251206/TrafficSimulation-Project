@@ -1,4 +1,5 @@
 #include "traffic_map.hpp"
+#include <ranges>
 
 void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end_pos)
 {
@@ -30,7 +31,7 @@ std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f&
 void TrafficMap::update(sf::Time elapsed)
 {
     // Update junctions first to handle car transfers
-    for (const auto& junction : m_junctions | std::views::values)
+    for (const auto& junction : m_junctions | std::views::values)   // Returns the value for each pair
         junction->update(elapsed);
 
     for (const auto& road : m_roads)

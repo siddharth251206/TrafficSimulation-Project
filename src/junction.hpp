@@ -1,11 +1,12 @@
 #pragma once
 
-#include "car.hpp"
+#include <SFML/Graphics.hpp>
 #include <memory>
 #include <queue>
 #include <vector>
 
 // Forward declaration
+class Car;
 class Road;
 
 class Junction
@@ -24,10 +25,16 @@ public:
 
 private:
     sf::Vector2f j_position;
-    std::unique_ptr<Car> j_car = nullptr;
-    std::vector<std::weak_ptr<Road>> j_road_list;
+    std::vector<std::weak_ptr<Road>> j_roads_incoming; // Maybe required in future
+    std::vector<std::weak_ptr<Road>> j_roads_outgoing;
     std::queue<std::unique_ptr<Car>> j_car_queue;
     bool j_is_occupied = false;
-    float j_crossing_timer = 0.f;
     static constexpr float CROSSING_DELAY = 0.5f;// Seconds for a car to cross junction
+    float j_crossing_timer = CROSSING_DELAY;
+};
+
+// Hash functor for sf::Vector2f (used as key for junctions)
+struct Junction_Hash
+{
+    size_t operator()(const sf::Vector2f& j) const noexcept;
 };

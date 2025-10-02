@@ -1,8 +1,9 @@
 #pragma once
-#include "car.hpp"
+
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <vector>
+#include "car.hpp"
 
 class Junction;
 
@@ -31,7 +32,6 @@ public:
     }
 
     bool is_empty() const { return m_cars.empty(); }
-    float get_rearmost_distance() const;
 
     static constexpr float SAFE_GAP = 60.f;// Car size (50) + gap (10)
 

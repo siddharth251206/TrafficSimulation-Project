@@ -2,7 +2,6 @@
 
 #include "road.hpp"
 #include "junction.hpp"
-#include "app_utility.hpp"
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <unordered_map>

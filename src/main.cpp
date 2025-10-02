@@ -1,7 +1,7 @@
-#include "car.hpp"
-#include "traffic_map.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include "car.hpp"
+#include "traffic_map.hpp"
 
 int main()
 {

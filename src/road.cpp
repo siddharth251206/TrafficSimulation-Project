@@ -1,11 +1,10 @@
-#include "road.hpp"
-#include "junction.hpp"
 #include <SFML/Graphics.hpp>
-#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <memory>
 #include <vector>
+#include "road.hpp"
+#include "junction.hpp"
 
 Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
     : m_start(start), m_end(end), m_model(sf::PrimitiveType::Lines, 2)
@@ -28,18 +27,6 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
 }
 
 void Road::add(std::unique_ptr<Car> car) { m_cars.push_back(std::move(car)); }
-
-float Road::get_rearmost_distance() const
-{
-    if (m_cars.empty())
-        return std::numeric_limits<float>::infinity();
-
-    float min_dist = m_cars[0]->m_relative_distance;
-    for (const auto& c : m_cars)
-        min_dist = std::min(min_dist, c->m_relative_distance);
-
-    return min_dist;
-}
 
 Junction* Road::getEndJunction() const
 {
@@ -78,7 +65,7 @@ void Road::update(sf::Time elapsed)
     std::vector<float> target_speeds;
     target_speeds.reserve(m_cars.size());
 
-    for (size_t i = 0; i < m_cars.size(); ++i)
+    for (size_t i = 0; i < m_cars.size(); i++)
     {
         const auto& current_car = m_cars[i];
         Obstacle obstacle = road_end;
@@ -86,20 +73,16 @@ void Road::update(sf::Time elapsed)
         // If there's a car in front, and it's too close -> it becomes the obstacle
         if (i > 0)
         {
-            if (const auto& car_ahead = m_cars[i - 1];
-                car_ahead->m_relative_distance < obstacle.position)
-            {
-                obstacle = { .position = car_ahead->m_relative_distance,
-                             .speed = car_ahead->m_speed };
-            }
+            const auto& car_ahead = m_cars[i - 1];
+            obstacle = { .position = car_ahead->m_relative_distance, .speed = car_ahead->m_speed };
         }
 
         // Speed of car = speed of obstacle if too close, else cruising speed
         const float distance_to_obstacle = obstacle.position - current_car->m_relative_distance;
-        target_speeds.push_back(distance_to_obstacle < SAFE_GAP ? obstacle.speed : 100.0F);
+        target_speeds.push_back(distance_to_obstacle < SAFE_GAP ? obstacle.speed : cruising_speed);
     }
 
-    for (size_t i = 0; i < m_cars.size(); ++i)
+    for (size_t i = 0; i < m_cars.size(); i++)
     {
         m_cars[i]->m_speed = target_speeds[i];
         m_cars[i]->update(elapsed);
