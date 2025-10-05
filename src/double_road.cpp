@@ -22,12 +22,12 @@ void DoubleRoad::update(sf::Time elapsed) const
     m_reverse->update(elapsed);
 }
 
-void DoubleRoad::draw(sf::RenderWindow &window, bool divider) const
+void DoubleRoad::draw(sf::RenderWindow &window, bool draw_divider) const
 {
     sf::Vector2f start = (m_forward->get_start() + m_reverse->get_end()) / 2.f;
     sf::Vector2f end = (m_forward->get_end() + m_reverse->get_start()) / 2.f;
 
-    if (divider)
+    if (draw_divider)
     {
         // Thick divider (yellow, 10.f wide)
         float divider_thickness = m_width / 4;

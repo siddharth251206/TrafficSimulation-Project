@@ -1,13 +1,12 @@
 #pragma once
-
+#include "car.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <vector>
-#include "car.hpp"
 
 class Junction;
 
-class Road
+class Road : public std::enable_shared_from_this<Road>
 {
 public:
     Road(const sf::Vector2f& start, const sf::Vector2f& end);
@@ -15,7 +14,7 @@ public:
     void update(sf::Time elapsed);
     void draw(sf::RenderWindow& window) const;
 
-    void add(std::unique_ptr<Car> car);// Road owns cars
+    void add(std::unique_ptr<Car> car);
     float getLength() const { return m_length; }
     const sf::Vector2f& get_direction() const { return m_direction; }
 
@@ -32,14 +31,14 @@ public:
     }
 
     bool is_empty() const { return m_cars.empty(); }
+    bool operator==(const Road &other) const;
 
-    static constexpr float SAFE_GAP = 60.f;// Car size (50) + gap (10)
+    static constexpr float SAFE_GAP = 60.f;
 
 private:
     sf::Vector2f m_start, m_end, m_direction;
     float m_length;
     sf::VertexArray m_model;
     std::vector<std::unique_ptr<Car>> m_cars;
-    // Use weak_ptr to prevent circular references and memory leaks
-    std::pair<std::weak_ptr<Junction>, std::weak_ptr<Junction>> m_junctions;// start, end
+    std::pair<std::weak_ptr<Junction>, std::weak_ptr<Junction>> m_junctions;
 };
