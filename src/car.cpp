@@ -3,19 +3,6 @@
 #include "road.hpp"
 #include <cstdint>
 
-sf::Font& Car::getFont() {
-    static sf::Font font;
-    static bool loaded = false;
-    if (!loaded) {
-        if (font.openFromFile("assets/Arial.ttf")) {
-            loaded = true;
-        } else {
-            std::cerr << "Error: Failed to load font assets/Arial.ttf" << std::endl;
-        }
-    }
-    return font;
-}
-
 Car::Car(const std::weak_ptr<Road>& road) : m_road(road)
 {
     if (auto road_ptr = road.lock())
