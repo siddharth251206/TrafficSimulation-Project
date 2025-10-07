@@ -3,10 +3,12 @@
 #include <memory>
 
 class Road;
+class Junction;
 
 class Car
 {
     friend class Road;
+    friend class Junction;
 public:
     // Supports optional sprite texture; falls back to a rectangle if no texture provided
     explicit Car(const std::weak_ptr<Road>& road, const sf::Texture* texture = nullptr);
