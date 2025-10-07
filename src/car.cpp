@@ -3,6 +3,8 @@
 #include "road.hpp"
 #include <cstdint>
 
+
+
 Car::Car(const std::weak_ptr<Road>& road) : m_road(road)
 {
     if (auto road_ptr = road.lock())
