@@ -1,15 +1,3 @@
-cmake_minimum_required(VERSION 3.16)
-project(TrafficSimulationProject LANGUAGES CXX)
-
-# ✅ Use modern LLVM compiler
-set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
-set(CMAKE_C_COMPILER "/opt/homebrew/opt/llvm/bin/clang")
-
-# ✅ Use C++23 (needed for std::views::values)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 add_executable(${PROJECT_NAME}_app
         main.cpp
         car.cpp
@@ -23,9 +11,13 @@ add_executable(${PROJECT_NAME}_app
 
 target_link_libraries(${PROJECT_NAME}_app
   PRIVATE
+    ${PROJECT_NAME}_options
+    ${PROJECT_NAME}_warnings
+
+    # Link library targets here, for example:
+    # fmt::fmt
     SFML::System
     SFML::Window
     SFML::Graphics
     SFML::Audio
 )
-
