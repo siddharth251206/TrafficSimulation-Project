@@ -36,6 +36,6 @@ private:
     bool j_is_occupied = false;
     static constexpr float CROSSING_DELAY = 0.5f;// Seconds for a car to cross junction
     float j_crossing_timer = CROSSING_DELAY;
-    float j_radius{ 20.f };
+    float j_radius{ 12.f };
     std::vector<TrafficLight> j_lights;
 };
