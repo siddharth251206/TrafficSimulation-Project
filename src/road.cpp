@@ -73,7 +73,6 @@ void Road::update(sf::Time elapsed)
         }
 
         // Step 2: Apply the IDM formula with the determined obstacle.
-        // Scroll down, anyways you kids can't understand this...
         const float min_jam_distance = 7.f;
         const float acceleration_exponent = 4.0f;
 
