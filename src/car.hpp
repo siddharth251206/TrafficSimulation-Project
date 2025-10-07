@@ -16,6 +16,9 @@ public:
     float m_relative_distance = 0.f;
 
 private:
+    static sf::Font& getFont();
+    sf::Text m_speed_text;
+
     float m_speed = 0.f;
     float m_acceleration = 0.f;
 
