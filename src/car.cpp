@@ -10,7 +10,7 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture)
     if (auto road_ptr = m_road.lock())
         m_position = road_ptr->get_point_at_distance(0.f);
 
-    // Fallback rectangle styling
+    // Fallback rectangle styling (when no texture is provided)
     m_model.setOrigin({ 15.f, 15.f });
     m_model.setFillColor(
         sf::Color(
@@ -20,15 +20,15 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture)
         )
     );
 
-    // If a texture is provided, configure the sprite
+    // If a texture is provided, construct and configure the sprite (SFML 3)
     if (texture)
     {
-        m_sprite.setTexture(*texture);
-        const sf::FloatRect bounds = m_sprite.getLocalBounds();
+        m_sprite.emplace(*texture);
+        const sf::FloatRect bounds = m_sprite->getLocalBounds();
         const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
-        m_sprite.setOrigin(originPoint);
-        m_sprite.setScale({0.8f, 0.8f});
-        m_sprite.setPosition(m_position);
+        m_sprite->setOrigin(originPoint);
+        m_sprite->setScale({0.5f, 0.5f});
+        m_sprite->setPosition(m_position);
     }
 
     // --- IDM property randomization ---
@@ -41,32 +41,40 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture)
 void Car::update(sf::Time elapsed)
 {
     const float dt = elapsed.asSeconds();
-    m_speed += m_acceleration * dt;
-    if (m_speed < 0.f)
-        m_speed = 0.f;
 
-    m_relative_distance += m_speed * dt;
+    // Kinematics update
+    m_relative_distance += (m_speed + 0.5f * m_acceleration * dt) * dt;
+    m_speed += m_acceleration * dt;
+    if (m_speed < 0.f) m_speed = 0.f;
 
     if (auto road_ptr = m_road.lock())
     {
+        // Clamp to road length and notify junction if we reached the end
+        const float road_len = road_ptr->getLength();
+        if (m_relative_distance >= road_len)
+        {
+            m_relative_distance = road_len;
+            m_speed = 0.f;
+        }
+
+        // Update position and orientation
         m_position = road_ptr->get_point_at_distance(m_relative_distance);
         m_model.setPosition(m_position);
 
-        // If using a sprite, update position and rotation to match road direction
-        if (m_sprite.getTexture())
+        if (m_sprite)
         {
-            m_sprite.setPosition(m_position);
+            m_sprite->setPosition(m_position);
             const sf::Vector2f direction = road_ptr->get_direction();
             const float angle_rad = std::atan2(direction.y, direction.x);
-            m_sprite.setRotation(sf::degrees(to_degrees(angle_rad)));
+            m_sprite->setRotation(sf::degrees(to_degrees(angle_rad)));
         }
     }
 }
 
 void Car::draw(sf::RenderWindow& window) const
 {
-    if (m_sprite.getTexture())
-        window.draw(m_sprite);
+    if (m_sprite)
+        window.draw(*m_sprite);
     else
         window.draw(m_model);
 }

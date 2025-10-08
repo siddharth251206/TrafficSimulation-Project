@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <optional>
 
 class Road;
 class Junction;
@@ -33,6 +34,6 @@ private:
 
     // Fallback visual when no texture is provided
     sf::RectangleShape m_model{{CAR_LENGTH, CAR_LENGTH}};
-    // Sprite visual when a texture is provided
-    sf::Sprite m_sprite;
+    // Sprite visual when a texture is provided (SFML 3: no default ctor)
+    std::optional<sf::Sprite> m_sprite;
 };
