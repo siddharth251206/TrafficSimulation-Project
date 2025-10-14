@@ -20,12 +20,13 @@ void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end
 void TrafficMap::add_double_road(
     const sf::Vector2f& start_pos,
     const sf::Vector2f& end_pos,
-    float width
+    float width,
+    bool need_divider
 )
 {
     const std::shared_ptr<Junction> start_junction = get_or_create_junction(start_pos);
     const std::shared_ptr<Junction> end_junction = get_or_create_junction(end_pos);
-    const auto new_double_road = std::make_shared<DoubleRoad>(start_pos, end_pos, width);
+    const auto new_double_road = std::make_shared<DoubleRoad>(start_pos, end_pos, width, need_divider);
 
     new_double_road->get_forward()->setStartJunction(start_junction);
     new_double_road->get_reverse()->setStartJunction(end_junction);
@@ -101,7 +102,7 @@ void TrafficMap::update(sf::Time elapsed)
 void TrafficMap::draw(sf::RenderWindow& window) const
 {
     for (const auto& road : m_double_roads)
-        road->draw(window, true);
+        road->draw(window);
     for (const auto& road : m_single_roads)
         road->draw(window);
 
