@@ -79,6 +79,13 @@ int main()
     int max_cars = 20;
     int spawned_count = 0;
 
+    sf::View camera(sf::FloatRect(sf::Vector2f{0.f, 0.f}, sf::Vector2f{static_cast<float>(width), static_cast<float>(height)}));
+    camera.setCenter(sf::Vector2f(600.f, 400.f)); // Start centered
+
+    float zoomLevel = 1.f; // To track current zoom
+    bool dragging = false;
+    sf::Vector2i lastMousePos;
+
     sf::Clock clock;
     while (window.isOpen())
     {
@@ -87,25 +94,80 @@ int main()
         {
             if (event->is<sf::Event::Closed>())
                 window.close();
+
+            // --- Mouse wheel for zooming ---
+            if (const auto* wheel = event->getIf<sf::Event::MouseWheelScrolled>())
+            {
+                if (wheel->delta > 0)
+                    zoomLevel *= 0.9f; // Zoom in
+                else
+                    zoomLevel *= 1.1f; // Zoom out
+
+                camera.setSize(sf::Vector2f(width * zoomLevel, height * zoomLevel));
+            }
+
+            // --- Start or stop dragging ---
+            if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>())
+            {
+                if (mbp->button == sf::Mouse::Button::Middle)
+                {
+                    dragging = true;
+                    lastMousePos = sf::Mouse::getPosition(window);
+                }
+            }
+            else if (const auto* mbr = event->getIf<sf::Event::MouseButtonReleased>())
+            {
+                if (mbr->button == sf::Mouse::Button::Middle)
+                {
+                    dragging = false;
+                }
+            }
+
+            // --- Handle mouse drag movement ---
+            if (event->is<sf::Event::MouseMoved>() && dragging)
+            {
+                sf::Vector2i newPos = sf::Mouse::getPosition(window);
+                sf::Vector2f delta(
+                    static_cast<float>(lastMousePos.x - newPos.x) * zoomLevel,
+                    static_cast<float>(lastMousePos.y - newPos.y) * zoomLevel
+                );
+                camera.move(delta);
+                lastMousePos = newPos;
+            }
         }
 
-        // Spawn cars near gate 1
+        // --- Keyboard panning controls ---
+        const float moveSpeed = 400.f * elapsed.asSeconds();
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) camera.move(sf::Vector2f(0.f, -moveSpeed));
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) camera.move(sf::Vector2f(0.f, moveSpeed));
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) camera.move(sf::Vector2f(-moveSpeed, 0.f));
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) camera.move(sf::Vector2f(moveSpeed, 0.f));
+
+        // --- Clamp camera to map boundaries ---
+        sf::Vector2f center = camera.getCenter();
+        sf::Vector2f halfSize = camera.getSize() / 2.f;
+        center.x = std::clamp(center.x, halfSize.x, 2000.f - halfSize.x);
+        center.y = std::clamp(center.y, halfSize.y, 2000.f - halfSize.y);
+        camera.setCenter(center);
+
+        // --- Spawn cars at gate1_junction road ---
         if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 1.5f)
         {
-            if (auto road = traffic_map.get_double_road(0))
+            if (auto road = traffic_map.get_double_road(0)) // gate1_junction to {200.f, 465.f}
             {
-                road->add_to_forward(
-                    std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr)
-                );
+                road->add_to_forward(std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr));
                 spawned_count++;
             }
             spawn_timer.restart();
         }
 
+        // Update traffic map
         traffic_map.update(elapsed);
 
+        // Apply the camera before drawing
+        window.setView(camera);
         window.clear(sf::Color(20, 20, 40));
-        traffic_map.draw(window);
+        traffic_map.draw(window); // Draw the traffic map
         window.display();
     }
 }
