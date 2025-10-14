@@ -3,9 +3,6 @@
 #include <memory>
 #include <random>
 
-// Convert radians to degrees (helper for SFML angle rotations)
-float to_degrees(float radians);
-
 bool point_in_circle(sf::Vector2f centre, float radius, sf::Vector2f point);
 
 // RNG singleton

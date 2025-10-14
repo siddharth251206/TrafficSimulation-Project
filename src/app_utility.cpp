@@ -47,10 +47,3 @@ size_t Junction_Hash::operator()(const sf::Vector2i& j) const noexcept
     // A good hash combination formula to reduce collisions
     return h1 ^ (h2 << 1);
 }
-
-// =================== Angle helper ===================
-float to_degrees(float radians)
-{
-    constexpr float PI = 3.14159265358979323846f;
-    return radians * 180.0f / PI;
-}

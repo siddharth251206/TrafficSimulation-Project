@@ -145,20 +145,16 @@ int main()
                 window.close();
         }
 
-        // Spawn cars on the north and west roads
+        // Spawn cars near gate 1
         if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 1.5f)
         {
             if (auto road = traffic_map.get_double_road(0))
-            {// North road
+            {
                 road->add_to_forward(
                     std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr)
                 );
                 spawned_count++;
             }
-            // if (auto road = traffic_map.get_double_road(2)) { // West road
-            //     road->add_to_forward(std::make_unique<Car>(road->get_forward()));
-            //     spawned_count++;
-            // }
             spawn_timer.restart();
         }
 
