@@ -18,7 +18,8 @@ public:
     void add_double_road(
         const sf::Vector2f& start_pos,
         const sf::Vector2f& end_pos,
-        float width = 15.f
+        float width = 25.f,
+        bool need_divider = true
     );
 
     void update(sf::Time elapsed);

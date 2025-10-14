@@ -15,16 +15,29 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Symlink to compile_commands.json for VSCode's clangd 
+# Provide compile_commands.json in the project root for clangd/VSCode
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
-  add_custom_target(
-    symlink_compile_commands ALL
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_BINARY_DIR}/compile_commands.json
-            ${CMAKE_SOURCE_DIR}/compile_commands.json
-    DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json
-    COMMENT "Creating symlink to compile_commands.json in project root"
-  )
+  if(WIN32)
+    # On Windows, creating symlinks commonly requires admin privileges (especially under OneDrive).
+    # Use a regular file copy instead to avoid permission failures.
+    add_custom_target(
+      symlink_compile_commands ALL
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              ${CMAKE_BINARY_DIR}/compile_commands.json
+              ${CMAKE_SOURCE_DIR}/compile_commands.json
+      DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json
+      COMMENT "Copying compile_commands.json to project root (Windows)"
+    )
+  else()
+    add_custom_target(
+      symlink_compile_commands ALL
+      COMMAND ${CMAKE_COMMAND} -E create_symlink
+              ${CMAKE_BINARY_DIR}/compile_commands.json
+              ${CMAKE_SOURCE_DIR}/compile_commands.json
+      DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json
+      COMMENT "Creating symlink to compile_commands.json in project root"
+    )
+  endif()
 endif()
 
 

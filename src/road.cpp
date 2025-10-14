@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-Road::Road(const sf::Vector2f &start, const sf::Vector2f &end)
+Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
     : m_start(start), m_end(end), m_model(sf::PrimitiveType::Lines, 2)
 {
     sf::Vector2f diff = end - start;
@@ -17,19 +17,19 @@ Road::Road(const sf::Vector2f &start, const sf::Vector2f &end)
     if (m_length != 0)
         m_direction = diff / m_length;
     else
-        m_direction = {0.f, 0.f};
-    m_model[0] = sf::Vertex{m_start};
-    m_model[1] = sf::Vertex{m_end};
+        m_direction = { 0.f, 0.f };
+    m_model[0] = sf::Vertex{ m_start };
+    m_model[1] = sf::Vertex{ m_end };
 }
 void Road::add(std::unique_ptr<Car> car) { m_cars.push_back(std::move(car)); }
 
 std::weak_ptr<Junction> Road::getEndJunction() const { return m_junctions.second; }
 
-void Road::setStartJunction(const std::shared_ptr<Junction> &junction)
+void Road::setStartJunction(const std::shared_ptr<Junction>& junction)
 {
     m_junctions.first = junction;
 }
-void Road::setEndJunction(const std::shared_ptr<Junction> &junction)
+void Road::setEndJunction(const std::shared_ptr<Junction>& junction)
 {
     m_junctions.second = junction;
 }
@@ -49,15 +49,15 @@ void Road::update(sf::Time elapsed)
     // Loop 1: Calculate Accelerations using IDM
     for (size_t i = 0; i < m_cars.size(); ++i)
     {
-        Car *current_car = m_cars[i].get();
+        Car* current_car = m_cars[i].get();
         Obstacle obstacle;
 
         // Step 1: Determine the immediate obstacle.
-        if (i > 0) // Is there a car in front?
+        if (i > 0)// Is there a car in front?
         {
-            obstacle = {m_cars[i - 1]->m_relative_distance, m_cars[i - 1]->m_speed};
+            obstacle = { m_cars[i - 1]->m_relative_distance, m_cars[i - 1]->m_speed };
         }
-        else // It is the first car
+        else// It is the first car
         {
             // Check for an obstacle at the end of the road (light or blocked junction).
             if (auto end_junction = getEndJunction().lock())
@@ -67,13 +67,12 @@ void Road::update(sf::Time elapsed)
                 if (light_state != TrafficLight::State::Green || end_junction->is_blocked())
                 {
                     // The car in front is the primary obstacle.
-                    obstacle = {m_length, 0.f};
+                    obstacle = { m_length, 0.f };
                 }
             }
         }
 
         // Step 2: Apply the IDM formula with the determined obstacle.
-        // Scroll down, anyways you kids can't understand this...
         const float min_jam_distance = 7.f;
         const float acceleration_exponent = 4.0f;
 
@@ -84,10 +83,16 @@ void Road::update(sf::Time elapsed)
         float delta_v = current_car->m_speed - obstacle.speed;
 
         float s_star =
-            min_jam_distance + std::max(
-                                   0.f,
-                                   (current_car->m_speed * current_car->m_time_headway + (current_car->m_speed * delta_v) / (2.0f * std::sqrt(
-                                                                                                                                        current_car->m_max_acceleration * current_car->m_brake_deceleration))));
+            min_jam_distance
+            + std::max(
+                0.f,
+                (current_car->m_speed * current_car->m_time_headway
+                 + (current_car->m_speed * delta_v)
+                       / (2.0f
+                          * std::sqrt(
+                              current_car->m_max_acceleration * current_car->m_brake_deceleration
+                          )))
+            );
 
         float free_road_term =
             std::pow(current_car->m_speed / current_car->m_max_speed, acceleration_exponent);
@@ -99,7 +104,7 @@ void Road::update(sf::Time elapsed)
     }
 
     // Loop 2: Update car positions based on calculated accelerations
-    for (const auto &car : m_cars)
+    for (const auto& car : m_cars)
     {
         car->update(elapsed);
     }
@@ -107,7 +112,7 @@ void Road::update(sf::Time elapsed)
     // Transfer cars that have reached the end of the road
     std::erase_if(
         m_cars,
-        [&](std::unique_ptr<Car> &car)
+        [&](std::unique_ptr<Car>& car)
         {
             if (car->m_relative_distance < m_length)
                 return false;
@@ -121,17 +126,18 @@ void Road::update(sf::Time elapsed)
             // Car is stuck at the end of a road with no junction
             car.reset();
             return false;
-        });
+        }
+    );
 }
 
-void Road::draw(sf::RenderWindow &window) const
+void Road::draw(sf::RenderWindow& window) const
 {
     window.draw(m_model);
-    for (const auto &car : m_cars)
+    for (const auto& car : m_cars)
         car->draw(window);
 }
 
-bool Road::operator==(const Road &other) const
+bool Road::operator==(const Road& other) const
 {
     return ((m_start == other.m_start) && (m_end == other.m_end));
 }

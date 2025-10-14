@@ -1,44 +1,38 @@
 #include "car.hpp"
 #include "app_utility.hpp"
 #include "road.hpp"
-#include <cstdint>
 #include <cmath>
-#include <iostream>
+#include <cstdint>
 
-sf::Font& Car::getFont() {
-    static sf::Font font;
-    static bool loaded = false;
-    if (!loaded) {
-        if (font.openFromFile("assets/Arial.ttf")) {
-            loaded = true;
-        } else {
-            std::cerr << "Error: Failed to load font assets/Arial.ttf" << std::endl;
-        }
-    }
-    return font;
-}
-
-Car::Car(const std::weak_ptr<Road>& road) : m_road(road),
-      m_speed_text(getFont(), "", 14)
+Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture) : m_road(road)
 {
-     m_speed_text.setFillColor(sf::Color::White);
-    if (auto road_ptr = road.lock()) {
+    if (auto road_ptr = m_road.lock())
         m_position = road_ptr->get_point_at_distance(0.f);
-        // Add rotation logic for the car model
-        const sf::Vector2f& direction = road_ptr->get_direction();
-        float angle_rad = std::atan2(direction.y, direction.x);
-        float angle_deg = angle_rad * 180.f / 3.14159265f;
-        m_model.setRotation(sf::degrees(angle_deg));
-    }
 
-    m_model.setOrigin({ 15.f, 15.f });
-    m_model.setFillColor(
-        sf::Color(
-            static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
-            static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
-            static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255))
-        )
-    );
+    // If a texture is provided, construct and configure the sprite (SFML 3)
+    if (texture)
+    {
+        m_visual.emplace<sf::Sprite>(*texture);
+        sf::Sprite& m_sprite = std::get<sf::Sprite>(m_visual);
+        const sf::FloatRect bounds = m_sprite.getLocalBounds();
+        const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
+        m_sprite.setOrigin(originPoint);
+        m_sprite.setScale({ 0.5f, 0.5f });
+    }
+    else
+    {
+        // Fallback rectangle styling (when no texture is provided)
+        m_visual.emplace<sf::RectangleShape>(sf::RectangleShape({ CAR_LENGTH, CAR_LENGTH }));
+        sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
+        m_model.setOrigin({ CAR_LENGTH / 2, CAR_LENGTH / 2 });
+        m_model.setFillColor(
+            sf::Color(
+                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
+                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
+                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255))
+            )
+        );
+    }
 
     // --- IDM property randomization ---
     m_max_speed = RNG::instance().getFloat(110.f, 160.f);
@@ -49,24 +43,46 @@ Car::Car(const std::weak_ptr<Road>& road) : m_road(road),
 
 void Car::update(sf::Time elapsed)
 {
-    float dt = elapsed.asSeconds();
+    const float dt = elapsed.asSeconds();
+
+    // Kinematics update
+    m_relative_distance += (m_speed + 0.5f * m_acceleration * dt) * dt;
     m_speed += m_acceleration * dt;
     if (m_speed < 0.f)
         m_speed = 0.f;
 
-    m_relative_distance += m_speed * dt;
-
     if (auto road_ptr = m_road.lock())
-        m_position = road_ptr->get_point_at_distance(m_relative_distance);
-    m_model.setPosition(m_position);
+    {
+        // Clamp to road length and notify junction if we reached the end
+        const float road_len = road_ptr->getLength();
+        if (m_relative_distance >= road_len)
+        {
+            m_relative_distance = road_len;
+            m_speed = 0.f;
+        }
 
-    m_speed_text.setString(std::to_string(static_cast<int>(m_speed)));
-    sf::FloatRect text_bounds = m_speed_text.getLocalBounds();
-    m_speed_text.setOrigin({text_bounds.position.x + text_bounds.size.x / 2.0f,
-                            text_bounds.position.y + text_bounds.size.y / 2.0f});
-    m_speed_text.setPosition({m_position.x, m_position.y - 25.f});
-    m_speed_text.setRotation(sf::degrees(0.f)); // Keep text upright
+        // Update position and orientation
+        m_position = road_ptr->get_point_at_distance(m_relative_distance);
+
+        if (sf::Sprite* m_sprite = std::get_if<sf::Sprite>(&m_visual))
+        {
+            m_sprite->setPosition(m_position);
+            const sf::Vector2f direction = road_ptr->get_direction();
+            const float angle_rad = std::atan2(direction.y, direction.x);
+            m_sprite->setRotation(sf::radians(angle_rad));
+        }
+        else
+        {
+            sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
+            m_model.setPosition(m_position);
+        }
+    }
 }
 
-void Car::draw(sf::RenderWindow& window) const { window.draw(m_model); 
- window.draw(m_speed_text);}
+void Car::draw(sf::RenderWindow& window)
+{
+    if (sf::Sprite* m_sprite = std::get_if<sf::Sprite>(&m_visual))
+        window.draw(*m_sprite);
+    else if (sf::RectangleShape* m_model = std::get_if<sf::RectangleShape>(&m_visual))
+        window.draw(*m_model);
+}

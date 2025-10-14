@@ -1,5 +1,7 @@
 #pragma once
+#include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <optional>
 #include <memory>
 #include <random>
 
@@ -29,4 +31,17 @@ public:
 struct Junction_Hash
 {
     size_t operator()(const sf::Vector2i& j) const noexcept;
+};
+
+// Currently to handle textures.
+class AssetHelper
+{
+    // Resolve an asset path like "assets/premium_car.png" by searching common
+    // working directories (., .., ../.., ../../.., ../../../..)
+    static std::optional<std::string> resolve_asset_path(const std::string& relative);
+
+public:
+    // Try to load a texture from a relative asset path, resolving across common bases.
+    // Returns true on success and logs what happened.
+    static bool try_load_texture(sf::Texture& tex, const std::string& relPath, const char* label);
 };

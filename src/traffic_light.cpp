@@ -1,10 +1,17 @@
 #include "traffic_light.hpp"
 #include <SFML/Graphics.hpp>
 
-TrafficLight::TrafficLight(std::weak_ptr<Road> road, sf::Time green_duration, sf::Time init_time, size_t road_count, State initial_state)
-    : m_road(road), m_green_duration(green_duration), m_state(initial_state), m_timer(init_time), m_model(sf::CircleShape(8.f)), adjacent_road_count(road_count)
+TrafficLight::TrafficLight(
+    std::weak_ptr<Road> road,
+    sf::Time green_duration,
+    sf::Time init_time,
+    size_t road_count,
+    State initial_state
+)
+    : m_road(road), m_green_duration(green_duration), m_state(initial_state), m_timer(init_time),
+      m_model(sf::CircleShape(8.f)), adjacent_road_count(road_count)
 {
-    m_model.setOrigin({8.f, 8.f});
+    m_model.setOrigin({ 8.f, 8.f });
 }
 
 void TrafficLight::update(sf::Time elapsed)
@@ -28,7 +35,9 @@ void TrafficLight::update(sf::Time elapsed)
         }
         break;
     case State::Red:
-        if (m_timer >= sf::seconds((1.1f * static_cast<float>(adjacent_road_count)) * m_green_duration.asSeconds()))
+        if (m_timer >= sf::seconds(
+                (1.1f * static_cast<float>(adjacent_road_count)) * m_green_duration.asSeconds()
+            ))
         {
             m_state = State::Green;
             m_timer = sf::Time::Zero;
@@ -37,7 +46,7 @@ void TrafficLight::update(sf::Time elapsed)
     }
 }
 
-void TrafficLight::draw(sf::RenderWindow &window)
+void TrafficLight::draw(sf::RenderWindow& window)
 {
     switch (get_state())
     {

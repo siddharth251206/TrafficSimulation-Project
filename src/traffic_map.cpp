@@ -2,7 +2,7 @@
 #include <memory>
 #include <ranges>
 
-void TrafficMap::add_road(const sf::Vector2f &start_pos, const sf::Vector2f &end_pos)
+void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end_pos)
 {
     const std::shared_ptr<Junction> start_junction = get_or_create_junction(start_pos);
     const std::shared_ptr<Junction> end_junction = get_or_create_junction(end_pos);
@@ -18,13 +18,15 @@ void TrafficMap::add_road(const sf::Vector2f &start_pos, const sf::Vector2f &end
 }
 
 void TrafficMap::add_double_road(
-    const sf::Vector2f &start_pos,
-    const sf::Vector2f &end_pos,
-    float width)
+    const sf::Vector2f& start_pos,
+    const sf::Vector2f& end_pos,
+    float width,
+    bool need_divider
+)
 {
     const std::shared_ptr<Junction> start_junction = get_or_create_junction(start_pos);
     const std::shared_ptr<Junction> end_junction = get_or_create_junction(end_pos);
-    const auto new_double_road = std::make_shared<DoubleRoad>(start_pos, end_pos, width);
+    const auto new_double_road = std::make_shared<DoubleRoad>(start_pos, end_pos, width, need_divider);
 
     new_double_road->get_forward()->setStartJunction(start_junction);
     new_double_road->get_reverse()->setStartJunction(end_junction);
@@ -39,16 +41,16 @@ void TrafficMap::add_double_road(
     m_double_roads.push_back(new_double_road);
 }
 
-std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f &position)
+std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f& position)
 {
-    sf::Vector2i grid = {static_cast<int>(std::floor(position.x / 40.f)),
-                         static_cast<int>(std::floor(position.y / 40.f))};
+    sf::Vector2i grid = { static_cast<int>(std::floor(position.x / 40.f)),
+                          static_cast<int>(std::floor(position.y / 40.f)) };
     // I deserve an award for coding this
-    for (short i{-1}; i <= 1; ++i)
+    for (short i{ -1 }; i <= 1; ++i)
     {
-        for (short j{-1}; j <= 1; ++j)
+        for (short j{ -1 }; j <= 1; ++j)
         {
-            if (const auto it = m_junctions.find({grid.x + i, grid.y + j});
+            if (const auto it = m_junctions.find({ grid.x + i, grid.y + j });
                 it != m_junctions.end())
                 for (auto junc_range : it->second)
                 {
@@ -63,15 +65,15 @@ std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f 
     return new_junction;
 }
 
-std::shared_ptr<Junction> TrafficMap::get_junction(const sf::Vector2f &position)
+std::shared_ptr<Junction> TrafficMap::get_junction(const sf::Vector2f& position)
 {
-    sf::Vector2i grid = {static_cast<int>(std::floor(position.x / 40.f)),
-                         static_cast<int>(std::floor(position.y / 40.f))};
-    for (short i{-1}; i <= 1; ++i)
+    sf::Vector2i grid = { static_cast<int>(std::floor(position.x / 40.f)),
+                          static_cast<int>(std::floor(position.y / 40.f)) };
+    for (short i{ -1 }; i <= 1; ++i)
     {
-        for (short j{-1}; j <= 1; ++j)
+        for (short j{ -1 }; j <= 1; ++j)
         {
-            if (const auto it = m_junctions.find({grid.x + i, grid.y + j});
+            if (const auto it = m_junctions.find({ grid.x + i, grid.y + j });
                 it != m_junctions.end())
                 for (auto junc_range : it->second)
                 {
@@ -85,26 +87,26 @@ std::shared_ptr<Junction> TrafficMap::get_junction(const sf::Vector2f &position)
 
 void TrafficMap::update(sf::Time elapsed)
 {
-    for (const auto &road : m_double_roads)
+    for (const auto& road : m_double_roads)
         road->update(elapsed);
-    for (const auto &road : m_single_roads)
+    for (const auto& road : m_single_roads)
         road->update(elapsed);
 
-    for (const auto &junction_grid : m_junctions | std::views::values)
+    for (const auto& junction_grid : m_junctions | std::views::values)
     {
         for (auto junction : junction_grid)
             junction->update(elapsed);
     }
 }
 
-void TrafficMap::draw(sf::RenderWindow &window) const
+void TrafficMap::draw(sf::RenderWindow& window) const
 {
-    for (const auto &road : m_double_roads)
-        road->draw(window, true);
-    for (const auto &road : m_single_roads)
+    for (const auto& road : m_double_roads)
+        road->draw(window);
+    for (const auto& road : m_single_roads)
         road->draw(window);
 
-    for (const auto &junction_grid : m_junctions | std::views::values)
+    for (const auto& junction_grid : m_junctions | std::views::values)
     {
         for (auto junction : junction_grid)
             junction->draw(window);

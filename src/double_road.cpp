@@ -1,19 +1,20 @@
 #include "double_road.hpp"
 #include <SFML/Graphics.hpp>
 
-DoubleRoad::DoubleRoad(const sf::Vector2f &start, const sf::Vector2f &end, float width)
+DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float width, bool has_divider)
     : m_width(width)
 {
     const sf::Vector2f diff = end - start;
     if (diff.length() == 0.f)
         return;
 
-    m_perp_dir = {diff.normalized().y, -diff.normalized().x};
+    m_perp_dir = { diff.normalized().y, -diff.normalized().x };
     m_lane_offset = (m_width / 2.f);
     sf::Vector2f offset = (m_perp_dir * m_lane_offset);
 
     m_forward = std::make_shared<Road>(start + offset, end + offset);
     m_reverse = std::make_shared<Road>(end - offset, start - offset);
+    m_has_divider = has_divider;
 }
 
 void DoubleRoad::update(sf::Time elapsed) const
@@ -22,12 +23,12 @@ void DoubleRoad::update(sf::Time elapsed) const
     m_reverse->update(elapsed);
 }
 
-void DoubleRoad::draw(sf::RenderWindow &window, bool draw_divider) const
+void DoubleRoad::draw(sf::RenderWindow& window) const
 {
     sf::Vector2f start = (m_forward->get_start() + m_reverse->get_end()) / 2.f;
     sf::Vector2f end = (m_forward->get_end() + m_reverse->get_start()) / 2.f;
 
-    if (draw_divider)
+    if (m_has_divider)
     {
         // Thick divider (yellow, 10.f wide)
         float divider_thickness = m_width / 4;
