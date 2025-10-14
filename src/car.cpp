@@ -1,11 +1,10 @@
 #include "car.hpp"
 #include "app_utility.hpp"
 #include "road.hpp"
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 
-Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture)
-    : m_road(road)
+Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture) : m_road(road)
 {
     if (auto road_ptr = m_road.lock())
         m_position = road_ptr->get_point_at_distance(0.f);
@@ -27,7 +26,7 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture)
         const sf::FloatRect bounds = m_sprite->getLocalBounds();
         const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
         m_sprite->setOrigin(originPoint);
-        m_sprite->setScale({0.5f, 0.5f});
+        m_sprite->setScale({ 0.5f, 0.5f });
         m_sprite->setPosition(m_position);
     }
 
@@ -45,7 +44,8 @@ void Car::update(sf::Time elapsed)
     // Kinematics update
     m_relative_distance += (m_speed + 0.5f * m_acceleration * dt) * dt;
     m_speed += m_acceleration * dt;
-    if (m_speed < 0.f) m_speed = 0.f;
+    if (m_speed < 0.f)
+        m_speed = 0.f;
 
     if (auto road_ptr = m_road.lock())
     {

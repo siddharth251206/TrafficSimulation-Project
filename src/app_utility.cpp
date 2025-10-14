@@ -1,8 +1,8 @@
 #include "app_utility.hpp"
 #include <SFML/Graphics.hpp>
-#include <random>
 #include <cmath>
 #include <functional>
+#include <random>
 
 bool point_in_circle(sf::Vector2f centre, float radius, sf::Vector2f point)
 {
@@ -31,7 +31,7 @@ size_t RNG::getIndex(size_t lo, size_t hi)
 
 float RNG::getFloat(float lo, float hi)
 {
-    if(lo > hi)
+    if (lo > hi)
         return lo;
     std::uniform_real_distribution<float> dis(lo, hi);
     return dis(gen);

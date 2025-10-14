@@ -18,11 +18,12 @@ public:
         sf::Time green_duration,
         sf::Time init_time,
         size_t adj_road_count,
-        State initial_state);
+        State initial_state
+    );
 
     void update(sf::Time elapsed);
     State get_state() const { return m_state; }
-    void draw(sf::RenderWindow &window);
+    void draw(sf::RenderWindow& window);
     const std::weak_ptr<Road> get_road() const { return m_road; }
 
 private:

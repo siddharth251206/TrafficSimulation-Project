@@ -1,9 +1,9 @@
-#include "traffic_map.hpp"
 #include "traffic_light.hpp"
+#include "traffic_map.hpp"
 #include <SFML/Graphics.hpp>
-#include <memory>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -13,13 +13,11 @@ static std::optional<std::string> resolve_asset_path(const std::string& relative
 {
     namespace fs = std::filesystem;
     const fs::path rel(relative);
-    const fs::path bases[] = {
-        fs::path{"."},
-        fs::path{".."},
-        fs::path{"../.."},
-        fs::path{"../../.."},
-        fs::path{"../../../.."}
-    };
+    const fs::path bases[] = { fs::path{ "." },
+                               fs::path{ ".." },
+                               fs::path{ "../.." },
+                               fs::path{ "../../.." },
+                               fs::path{ "../../../.." } };
 
     for (const auto& base : bases)
     {
@@ -126,8 +124,10 @@ int main()
     sf::Texture car_texture;
     bool loaded = false;
     loaded = try_load_texture(car_texture, "assets/premium_car.png", "premium car");
-    if (!loaded) loaded = try_load_texture(car_texture, "assets/advanced_car.png", "advanced car");
-    if (!loaded) loaded = try_load_texture(car_texture, "assets/car.png", "simple car");
+    if (!loaded)
+        loaded = try_load_texture(car_texture, "assets/advanced_car.png", "advanced car");
+    if (!loaded)
+        loaded = try_load_texture(car_texture, "assets/car.png", "simple car");
 
 
     // Car Spawner Logic
@@ -150,7 +150,9 @@ int main()
         {
             if (auto road = traffic_map.get_double_road(0))
             {// North road
-                road->add_to_forward(std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr));
+                road->add_to_forward(
+                    std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr)
+                );
                 spawned_count++;
             }
             // if (auto road = traffic_map.get_double_road(2)) { // West road
