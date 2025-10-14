@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <optional>
+#include <variant>
 
 class Road;
 class Junction;
@@ -15,7 +16,7 @@ public:
     // Supports optional sprite texture; falls back to a rectangle if no texture provided
     explicit Car(const std::weak_ptr<Road>& road, const sf::Texture* texture = nullptr);
     void update(sf::Time elapsed);
-    void draw(sf::RenderWindow& window) const;
+    void draw(sf::RenderWindow& window);
 
 private:
     // Road reference and kinematics
@@ -32,9 +33,6 @@ private:
 
     static constexpr float CAR_LENGTH = 30.f;
     sf::Vector2f m_position;
-
-    // Fallback visual when no texture is provided
-    sf::RectangleShape m_model{ { CAR_LENGTH, CAR_LENGTH } };
-    // Sprite visual when a texture is provided (SFML 3: no default ctor)
-    std::optional<sf::Sprite> m_sprite;
+    // The car can be one of rectangle or sprite.
+    std::variant<sf::RectangleShape, sf::Sprite> m_visual;
 };

@@ -12,16 +12,18 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture) : m_road(r
     // If a texture is provided, construct and configure the sprite (SFML 3)
     if (texture)
     {
-        m_sprite.emplace(*texture);
-        const sf::FloatRect bounds = m_sprite->getLocalBounds();
+        m_visual.emplace<sf::Sprite>(*texture);
+        sf::Sprite& m_sprite = std::get<sf::Sprite>(m_visual);
+        const sf::FloatRect bounds = m_sprite.getLocalBounds();
         const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
-        m_sprite->setOrigin(originPoint);
-        m_sprite->setScale({ 0.5f, 0.5f });
-        // m_sprite->setPosition(m_position);
+        m_sprite.setOrigin(originPoint);
+        m_sprite.setScale({ 0.5f, 0.5f });
     }
     else
     {
         // Fallback rectangle styling (when no texture is provided)
+        m_visual.emplace<sf::RectangleShape>(sf::RectangleShape({ CAR_LENGTH, CAR_LENGTH }));
+        sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
         m_model.setOrigin({ CAR_LENGTH / 2, CAR_LENGTH / 2 });
         m_model.setFillColor(
             sf::Color(
@@ -62,7 +64,7 @@ void Car::update(sf::Time elapsed)
         // Update position and orientation
         m_position = road_ptr->get_point_at_distance(m_relative_distance);
 
-        if (m_sprite)
+        if (sf::Sprite* m_sprite = std::get_if<sf::Sprite>(&m_visual))
         {
             m_sprite->setPosition(m_position);
             const sf::Vector2f direction = road_ptr->get_direction();
@@ -70,14 +72,17 @@ void Car::update(sf::Time elapsed)
             m_sprite->setRotation(sf::radians(angle_rad));
         }
         else
+        {
+            sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
             m_model.setPosition(m_position);
+        }
     }
 }
 
-void Car::draw(sf::RenderWindow& window) const
+void Car::draw(sf::RenderWindow& window)
 {
-    if (m_sprite)
+    if (sf::Sprite* m_sprite = std::get_if<sf::Sprite>(&m_visual))
         window.draw(*m_sprite);
-    else
-        window.draw(m_model);
+    else if (sf::RectangleShape* m_model = std::get_if<sf::RectangleShape>(&m_visual))
+        window.draw(*m_model);
 }
