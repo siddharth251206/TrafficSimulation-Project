@@ -58,7 +58,6 @@ void Car::update(sf::Time elapsed)
         if (m_relative_distance >= road_len)
         {
             m_relative_distance = road_len;
-            m_speed = 0.f;
         }
 
         // Update position and orientation
