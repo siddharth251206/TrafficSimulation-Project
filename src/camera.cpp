@@ -10,12 +10,6 @@ CameraController::CameraController(float width, float height)
     m_max_zoom = std::max((MAP_MAX_X - MAP_MIN_X) / width, (MAP_MAX_Y - MAP_MIN_Y) / height);
 }
 
-CameraController& CameraController::instance(float width, float height)
-{
-    static CameraController object(width, height);
-    return object;
-}
-
 void CameraController::handle_zoom(
     const sf::RenderWindow& window,
     const sf::Event::MouseWheelScrolled* wheel,
