@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <variant>
+#include <deque>
 
 class Road;
 class Junction;
@@ -17,6 +18,9 @@ public:
     explicit Car(const std::weak_ptr<Road>& road, const sf::Texture* texture = nullptr);
     void update(sf::Time elapsed);
     void draw(sf::RenderWindow& window);
+    void set_path(std::deque<std::weak_ptr<Road>> new_path);
+    std::weak_ptr<Road> get_next_road_in_path();
+    void advance_path();
 
 private:
     // Road reference and kinematics
@@ -35,4 +39,5 @@ private:
     sf::Vector2f m_position;
     // The car can be one of rectangle or sprite.
     std::variant<sf::RectangleShape, sf::Sprite> m_visual;
+    std::deque<std::weak_ptr<Road>> m_path; // Stores the car's route
 };

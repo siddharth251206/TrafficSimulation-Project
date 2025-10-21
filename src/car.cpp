@@ -85,3 +85,20 @@ void Car::draw(sf::RenderWindow& window)
     else if (sf::RectangleShape* m_model = std::get_if<sf::RectangleShape>(&m_visual))
         window.draw(*m_model);
 }
+void Car::set_path(std::deque<std::weak_ptr<Road>> new_path){
+    m_path=std::move(new_path);
+}
+std::weak_ptr<Road> Car::get_next_road_in_path(){
+    // Logic to get the first road from m_path will go here.
+    if(m_path.empty()){   
+        return{};
+}
+return m_path.front();
+ 
+}
+void Car::advance_path(){
+    // Logic to remove the first road from m_path will go here.
+    if(!m_path.empty()){
+        m_path.pop_front();
+    }
+}

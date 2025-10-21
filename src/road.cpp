@@ -21,7 +21,9 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
     m_model[0] = sf::Vertex{ m_start };
     m_model[1] = sf::Vertex{ m_end };
 }
-void Road::add(std::unique_ptr<Car> car) { m_cars.push_back(std::move(car)); }
+void Road::add(std::unique_ptr<Car> car) { 
+    car->advance_path();
+    m_cars.push_back(std::move(car)); }
 
 std::weak_ptr<Junction> Road::getEndJunction() const { return m_junctions.second; }
 
@@ -146,4 +148,20 @@ void Road::draw(sf::RenderWindow& window) const
 bool Road::operator==(const Road& other) const
 {
     return ((m_start == other.m_start) && (m_end == other.m_end));
+}
+float Road::get_travel_time() const{
+    // Logic for calculating time based on length and m_cars.size() will go here.
+
+    if(auto end_junc = getEndJunction().lock()){
+        if (end_junc->get_light_state_for_road(shared_from_this()) != TrafficLight::State::Green)
+        {
+            return std::numeric_limits<float>::infinity();
+        }
+    }
+
+    constexpr float TYPICAL_SPEED = 100.F;
+    const float base_time = m_length/ TYPICAL_SPEED;
+    constexpr float PENALTY_PER_CAR = 0.25F;
+    const float density_penalty = 1.0f + (static_cast<float>(m_cars.size()) * PENALTY_PER_CAR);
+    return base_time* density_penalty;
 }

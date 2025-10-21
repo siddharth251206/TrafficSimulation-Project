@@ -1,6 +1,7 @@
 #include "camera.hpp"
 #include "traffic_light.hpp"
 #include "traffic_map.hpp"
+#include "pathfinder.hpp"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
@@ -63,6 +64,7 @@ int main()
     traffic_map.add_double_road(department_junction, quarters_junction, 15.f);
     traffic_map.add_double_road(department_junction, admin_junction, 15.f);
 
+    PathFinder pathfinder;
     // Load car texture
     sf::Texture car_texture;
     bool loaded = false;
@@ -75,7 +77,7 @@ int main()
 
     // Car spawner logic
     sf::Clock spawn_timer;
-    int max_cars = 5;
+    int max_cars = 50;
     int spawned_count = 0;
 
     CameraController camera_controller(static_cast<float>(width), static_cast<float>(height));
@@ -113,14 +115,32 @@ int main()
         camera_controller.clamp_camera();
 
         // Spawn cars
-        if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 1.5f)
+        if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 0.5f)
         {
-            if (auto road = traffic_map.get_double_road(0))
+            auto start_junction = traffic_map.get_junction(gate1_junction);
+            auto end_junction = traffic_map.get_junction(gajjar_junction); // e.g., Department junction
+
+            if (start_junction && end_junction)
             {
-                road->add_to_forward(
-                    std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr)
-                );
-                spawned_count++;
+                // 4. Calculate the optimal path using the Pathfinder
+                std::deque<std::weak_ptr<Road>> path = pathfinder.find_path(start_junction, end_junction);
+
+                // 5. Only spawn the car if a valid path was found
+                if (!path.empty())
+                {
+                    // Get the very first road segment from the calculated path
+                    if (auto first_road = path.front().lock())
+                    {
+                        // Create the car and assign it the path
+                        auto car = std::make_unique<Car>(first_road, loaded ? &car_texture : nullptr);
+                        car->set_path(path);
+
+                        // Add the car to the first road
+                        first_road->add(std::move(car));
+
+                        spawned_count++;
+                    }
+                }
             }
             spawn_timer.restart();
         }

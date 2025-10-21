@@ -24,7 +24,8 @@ public:
     bool is_blocked() const { return j_is_occupied || !j_car_queue.empty(); }
 
     void install_light(sf::Time green_time);
-    TrafficLight::State get_light_state_for_road(std::weak_ptr<Road> road);
+    TrafficLight::State get_light_state_for_road(std::weak_ptr<const Road> road) const;
+    const std::vector<std::weak_ptr<Road>>& get_outgoing_roads() const;
 
 private:
     void handle_car_redirection();
