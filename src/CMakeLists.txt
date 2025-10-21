@@ -7,6 +7,7 @@ add_executable(${PROJECT_NAME}_app
 		    traffic_map.cpp
         double_road.cpp
         traffic_light.cpp
+        camera.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app

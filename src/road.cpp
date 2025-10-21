@@ -99,8 +99,14 @@ void Road::update(sf::Time elapsed)
         float interaction_term = (s_star * s_star) / (s * s);
 
         // Set the final calculated acceleration for this frame.
-        current_car->m_acceleration =
+        float calculated_acc =
             current_car->m_max_acceleration * (1.0f - free_road_term - interaction_term);
+
+        // this nugget of fuck is why the car's accel isn't negativer than max break force
+        // so if this clusterfucking function says, "hi m_acceleration = -100000!"
+        // it says, "fuckity nope, m_acceleration is -m_brake_deceleration"
+        // and stops cars from disappearing. i do not know why. i am sorry
+        current_car->m_acceleration = std::max(-current_car->m_brake_deceleration, calculated_acc);
     }
 
     // Loop 2: Update car positions based on calculated accelerations

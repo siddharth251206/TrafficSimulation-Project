@@ -1,8 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <optional>
 #include <memory>
+#include <optional>
 #include <random>
 
 bool point_in_circle(sf::Vector2f centre, float radius, sf::Vector2f point);
