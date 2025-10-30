@@ -1,5 +1,0 @@
-if(EXISTS "C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/test/MyProject_tests-b12d07c_tests.cmake")
-  include("C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/test/MyProject_tests-b12d07c_tests.cmake")
-else()
-  add_test(MyProject_tests_NOT_BUILT-b12d07c MyProject_tests_NOT_BUILT-b12d07c)
-endif()
