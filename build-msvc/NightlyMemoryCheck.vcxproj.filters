@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\aniru\Documents\TrafficSimulation-Project\build-msvc\CMakeFiles\6cf19aac9b44530b63ba0ae9b2c5456a\NightlyMemoryCheck.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\aniru\Documents\TrafficSimulation-Project\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\aniru\Documents\TrafficSimulation-Project\build-msvc\CMakeFiles\NightlyMemoryCheck" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{BBB00CFE-462D-3FF5-9032-CC580984C650}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

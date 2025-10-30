@@ -1,0 +1,8 @@
+# CMake generation dependency list for this directory.
+C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/vcpkg_installed/x64-windows/share/catch2/Catch.cmake
+C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/vcpkg_installed/x64-windows/share/catch2/Catch2Config.cmake
+C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/vcpkg_installed/x64-windows/share/catch2/Catch2ConfigVersion.cmake
+C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/vcpkg_installed/x64-windows/share/catch2/Catch2Targets-debug.cmake
+C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/vcpkg_installed/x64-windows/share/catch2/Catch2Targets-release.cmake
+C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/vcpkg_installed/x64-windows/share/catch2/Catch2Targets.cmake
+C:/Users/aniru/Documents/TrafficSimulation-Project/test/CMakeLists.txt

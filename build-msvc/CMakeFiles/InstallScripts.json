@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/cmake_install.cmake",
+		"C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/src/cmake_install.cmake",
+		"C:/Users/aniru/Documents/TrafficSimulation-Project/build-msvc/test/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
