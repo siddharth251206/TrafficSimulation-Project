@@ -12,9 +12,7 @@ public:
     Road(const sf::Vector2f& start, const sf::Vector2f& end);
 
     void update(sf::Time elapsed);
-    // Draw only the cars; lane geometry is drawn by DoubleRoad
     void draw(sf::RenderWindow& window) const;
-    void draw_cars(sf::RenderWindow& window) const;
 
     void add(std::unique_ptr<Car> car);
     float getLength() const { return m_length; }
