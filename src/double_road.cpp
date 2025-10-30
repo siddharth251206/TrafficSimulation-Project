@@ -1,16 +1,19 @@
 #include "double_road.hpp"
 #include <SFML/Graphics.hpp>
+#include <cmath>
 
 DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float width, bool has_divider)
     : m_width(width)
 {
     const sf::Vector2f diff = end - start;
-    if (diff.length() == 0.f)
+    const float len = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+    if (len == 0.f)
         return;
 
-    m_perp_dir = { diff.normalized().y, -diff.normalized().x };
+    const sf::Vector2f dir = { diff.x / len, diff.y / len };
+    m_perp_dir = { dir.y, -dir.x };
     m_lane_offset = (m_width / 2.f);
-    sf::Vector2f offset = (m_perp_dir * m_lane_offset);
+    const sf::Vector2f offset = { m_perp_dir.x * m_lane_offset, m_perp_dir.y * m_lane_offset };
 
     m_forward = std::make_shared<Road>(start + offset, end + offset);
     m_reverse = std::make_shared<Road>(end - offset, start - offset);
@@ -38,7 +41,7 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
     // Helper to draw a quad given centerline endpoints and half-width
     auto draw_strip = [&](sf::Vector2f a, sf::Vector2f b, float half_w, const sf::Color& color)
     {
-        sf::Vector2f perp = m_perp_dir * half_w;
+        const sf::Vector2f perp = { m_perp_dir.x * half_w, m_perp_dir.y * half_w };
         sf::ConvexShape quad(4);
         quad.setPoint(0, a + perp);
         quad.setPoint(1, a - perp);
