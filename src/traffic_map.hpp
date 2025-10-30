@@ -3,6 +3,7 @@
 #include "app_utility.hpp"
 #include "double_road.hpp"
 #include "junction.hpp"
+#include "building.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <unordered_map>
@@ -22,6 +23,9 @@ public:
         bool need_divider = true
     );
 
+    // Buildings
+    void add_building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Color color = sf::Color(80, 80, 95));
+
     void update(sf::Time elapsed);
     void draw(sf::RenderWindow& window) const;
 
@@ -35,6 +39,7 @@ private:
     std::shared_ptr<Junction> get_or_create_junction(const sf::Vector2f& position);
     std::vector<std::shared_ptr<DoubleRoad>> m_double_roads;
     std::vector<std::shared_ptr<Road>> m_single_roads;
+    std::vector<Building> m_buildings;
     std::unordered_map<sf::Vector2i, std::vector<std::shared_ptr<Junction>>, Junction_Hash>
         m_junctions;
 };

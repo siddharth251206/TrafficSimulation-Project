@@ -138,7 +138,13 @@ void Road::update(sf::Time elapsed)
 
 void Road::draw(sf::RenderWindow& window) const
 {
-    window.draw(m_model);
+    // Road geometry is drawn by DoubleRoad; here we only render cars
+    for (const auto& car : m_cars)
+        car->draw(window);
+}
+
+void Road::draw_cars(sf::RenderWindow& window) const
+{
     for (const auto& car : m_cars)
         car->draw(window);
 }

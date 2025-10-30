@@ -2,12 +2,13 @@ add_executable(${PROJECT_NAME}_app
         main.cpp
         car.cpp
         road.cpp
-	      app_utility.cpp
+        app_utility.cpp
         junction.cpp
-		    traffic_map.cpp
+        traffic_map.cpp
         double_road.cpp
         traffic_light.cpp
         camera.cpp
+        building.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app

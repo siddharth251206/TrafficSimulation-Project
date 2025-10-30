@@ -33,35 +33,42 @@ int main()
     const sf::Vector2f department_junction = { 700.f, 500.f };
 
     // Add roads to the traffic map
-    traffic_map.add_double_road(gate1_junction, { 200.f, 465.f }, 15.f, false);
-    traffic_map.add_double_road(bhabha_junction, gajjar_junction, 15.f);
-    traffic_map.add_double_road(nehru_junction, bhabha_junction, 15.f);
-    traffic_map.add_double_road(nehru_junction, swami_junction, 15.f);
-    traffic_map.add_double_road(bhabha_junction, swami_entrance_junction, 15.f);
-    traffic_map.add_double_road(swami_junction, swami_entrance_junction, 15.f);
-    traffic_map.add_double_road(swami_entrance_junction, { 200.f, 300.f }, 15.f);
-    traffic_map.add_double_road({ 200.f, 300.f }, { 700.f, 300.f }, 15.f);
-    traffic_map.add_double_road(gajjar_junction, { 700.f, 300.f }, 15.f);
-    traffic_map.add_double_road({ 200.f, 300.f }, canteen_junction, 15.f);
-    traffic_map.add_double_road(canteen_junction, quarters_junction, 15.f);
-    traffic_map.add_double_road({ 700.f, 300.f }, quarters_junction, 15.f);
-    traffic_map.add_double_road({ 700.f, 300.f }, temple_junction, 15.f);
-    traffic_map.add_double_road(quarters_junction, { 900.f, 375.f }, 15.f);
-    traffic_map.add_double_road(gajjar_junction, { 900.f, 100.f }, 15.f);
-    traffic_map.add_double_road({ 900.f, 100.f }, temple_junction, 15.f);
-    traffic_map.add_double_road({ 900.f, 375.f }, temple_junction, 15.f);
-    traffic_map.add_double_road({ 100.f, 375.f }, canteen_junction, 15.f);
-    traffic_map.add_double_road(canteen_junction, { 200.f, 465.f }, 15.f);
-    traffic_map.add_double_road({ 100.f, 465.f }, { 200.f, 465.f }, 15.f);
-    traffic_map.add_double_road({ 100.f, 465.f }, { 100.f, 375.f }, 15.f);
-    traffic_map.add_double_road({ 100.f, 465.f }, { 100.f, 700.f }, 15.f);
-    traffic_map.add_double_road({ 100.f, 700.f }, gate1_junction, 15.f);
-    traffic_map.add_double_road(gate1_junction, gate2_junction, 15.f);
-    traffic_map.add_double_road(library_junction, admin_junction, 15.f);
-    traffic_map.add_double_road(admin_junction, { 300.f, 700.f }, 15.f);
-    traffic_map.add_double_road(department_junction, gate2_junction, 15.f);
-    traffic_map.add_double_road(department_junction, quarters_junction, 15.f);
-    traffic_map.add_double_road(department_junction, admin_junction, 15.f);
+    traffic_map.add_double_road(gate1_junction, { 200.f, 465.f }, 24.f, false);
+    traffic_map.add_double_road(bhabha_junction, gajjar_junction, 24.f);
+    traffic_map.add_double_road(nehru_junction, bhabha_junction, 24.f);
+    traffic_map.add_double_road(nehru_junction, swami_junction, 24.f);
+    traffic_map.add_double_road(bhabha_junction, swami_entrance_junction, 24.f);
+    traffic_map.add_double_road(swami_junction, swami_entrance_junction, 24.f);
+    traffic_map.add_double_road(swami_entrance_junction, { 200.f, 300.f }, 24.f);
+    traffic_map.add_double_road({ 200.f, 300.f }, { 700.f, 300.f }, 24.f);
+    traffic_map.add_double_road(gajjar_junction, { 700.f, 300.f }, 24.f);
+    traffic_map.add_double_road({ 200.f, 300.f }, canteen_junction, 24.f);
+    traffic_map.add_double_road(canteen_junction, quarters_junction, 24.f);
+    traffic_map.add_double_road({ 700.f, 300.f }, quarters_junction, 24.f);
+    traffic_map.add_double_road({ 700.f, 300.f }, temple_junction, 24.f);
+    traffic_map.add_double_road(quarters_junction, { 900.f, 375.f }, 24.f);
+    traffic_map.add_double_road(gajjar_junction, { 900.f, 100.f }, 24.f);
+    traffic_map.add_double_road({ 900.f, 100.f }, temple_junction, 24.f);
+    traffic_map.add_double_road({ 900.f, 375.f }, temple_junction, 24.f);
+    traffic_map.add_double_road({ 100.f, 375.f }, canteen_junction, 24.f);
+    traffic_map.add_double_road(canteen_junction, { 200.f, 465.f }, 24.f);
+    traffic_map.add_double_road({ 100.f, 465.f }, { 200.f, 465.f }, 24.f);
+    traffic_map.add_double_road({ 100.f, 465.f }, { 100.f, 375.f }, 24.f);
+    traffic_map.add_double_road({ 100.f, 465.f }, { 100.f, 700.f }, 24.f);
+    traffic_map.add_double_road({ 100.f, 700.f }, gate1_junction, 24.f);
+    traffic_map.add_double_road(gate1_junction, gate2_junction, 24.f);
+    traffic_map.add_double_road(library_junction, admin_junction, 24.f);
+    traffic_map.add_double_road(admin_junction, { 300.f, 700.f }, 24.f);
+    traffic_map.add_double_road(department_junction, gate2_junction, 24.f);
+    traffic_map.add_double_road(department_junction, quarters_junction, 24.f);
+    traffic_map.add_double_road(department_junction, admin_junction, 24.f);
+
+    // Add some buildings in open areas
+    traffic_map.add_building({ 300.f, 220.f }, { 120.f, 80.f }, sf::Color(90, 90, 110));
+    traffic_map.add_building({ 500.f, 220.f }, { 140.f, 90.f }, sf::Color(85, 85, 105));
+    traffic_map.add_building({ 850.f, 200.f }, { 120.f, 120.f }, sf::Color(95, 95, 120));
+    traffic_map.add_building({ 320.f, 520.f }, { 100.f, 140.f }, sf::Color(80, 100, 120));
+    traffic_map.add_building({ 820.f, 520.f }, { 160.f, 120.f }, sf::Color(100, 90, 110));
 
     // Load car texture
     sf::Texture car_texture;

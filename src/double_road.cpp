@@ -25,26 +25,46 @@ void DoubleRoad::update(sf::Time elapsed) const
 
 void DoubleRoad::draw(sf::RenderWindow& window) const
 {
-    sf::Vector2f start = (m_forward->get_start() + m_reverse->get_end()) / 2.f;
-    sf::Vector2f end = (m_forward->get_end() + m_reverse->get_start()) / 2.f;
+    // Compute centerline ends
+    sf::Vector2f center_start = (m_forward->get_start() + m_reverse->get_end()) / 2.f;
+    sf::Vector2f center_end   = (m_forward->get_end() + m_reverse->get_start()) / 2.f;
 
-    if (m_has_divider)
+    // Visual parameters
+    const float divider_thickness = m_has_divider ? (m_width * 0.12f) : 0.f;
+    const float lane_half = (m_width - divider_thickness) / 2.f;
+    const sf::Color road_color(50, 50, 55);
+    const sf::Color edge_color(35, 35, 40);
+
+    // Helper to draw a quad given centerline endpoints and half-width
+    auto draw_strip = [&](sf::Vector2f a, sf::Vector2f b, float half_w, const sf::Color& color)
     {
-        // Thick divider (yellow, 10.f wide)
-        float divider_thickness = m_width / 4;
-        sf::Vector2f divider_perp = m_perp_dir * (divider_thickness / 2.f);
-        sf::ConvexShape divider(4);
-        divider.setPoint(0, start + divider_perp);
-        divider.setPoint(1, start - divider_perp);
-        divider.setPoint(2, end - divider_perp);
-        divider.setPoint(3, end + divider_perp);
-        divider.setFillColor(sf::Color::Yellow);
-        window.draw(divider);
+        sf::Vector2f perp = m_perp_dir * half_w;
+        sf::ConvexShape quad(4);
+        quad.setPoint(0, a + perp);
+        quad.setPoint(1, a - perp);
+        quad.setPoint(2, b - perp);
+        quad.setPoint(3, b + perp);
+        quad.setFillColor(color);
+        window.draw(quad);
+    };
+
+    // Draw lane surfaces (two one-way lanes)
+    draw_strip(m_forward->get_start(), m_forward->get_end(), lane_half, road_color);
+    draw_strip(m_reverse->get_start(), m_reverse->get_end(), lane_half, road_color);
+
+    // Optional central divider
+    if (m_has_divider && divider_thickness > 0.f)
+    {
+        draw_strip(center_start, center_end, divider_thickness / 2.f, sf::Color(180, 140, 0));
     }
 
-    // Draw each road and cars
-    m_forward->draw(window);
-    m_reverse->draw(window);
+    // Light road edges for subtle outline
+    draw_strip(m_forward->get_start(), m_forward->get_end(), 2.f, edge_color);
+    draw_strip(m_reverse->get_start(), m_reverse->get_end(), 2.f, edge_color);
+
+    // Draw cars on top
+    m_forward->draw_cars(window);
+    m_reverse->draw_cars(window);
 }
 
 void DoubleRoad::add_to_forward(std::unique_ptr<Car> car) { m_forward->add(std::move(car)); }
