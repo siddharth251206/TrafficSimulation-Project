@@ -1,6 +1,7 @@
 #include "double_road.hpp"
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <optional>
 #include "app_utility.hpp"
 
 DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float width, bool has_divider)
@@ -42,12 +43,9 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
     if (!sRoadTex)
     {
         sRoadTex.emplace();
-        bool loaded = false;
-        if (auto full = AssetHelper::resolve_asset_path("assets/road.png"))
-            loaded = sRoadTex->loadFromFile(*full);
+        bool loaded = AssetHelper::try_load_texture(*sRoadTex, "assets/road.png", "road");
         if (!loaded)
-            if (auto full2 = AssetHelper::resolve_asset_path("assets/road_tile.png"))
-                loaded = sRoadTex->loadFromFile(*full2);
+            loaded = AssetHelper::try_load_texture(*sRoadTex, "assets/road_tile.png", "road");
         if (!loaded)
             sRoadTex.reset();
         else
@@ -72,7 +70,7 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
         {
             rect.setTexture(&*sRoadTex);
             // Tile texture along the length
-            rect.setTextureRect(sf::IntRect(0, 0, static_cast<int>(length), static_cast<int>(lane_width)));
+            rect.setTextureRect(sf::IntRect({0, 0}, { static_cast<int>(length), static_cast<int>(lane_width) }));
         }
         else
         {
