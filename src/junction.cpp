@@ -83,15 +83,67 @@ TrafficLight::State Junction::get_light_state_for_road(std::weak_ptr<Road> road)
     return TrafficLight::State::Green;// Default to green
 }
 
+// void Junction::draw(sf::RenderWindow& window)
+// {
+//     sf::CircleShape circle(j_radius);
+//     circle.setOrigin({ j_radius, j_radius });
+//     circle.setPosition(j_position);
+//     circle.setFillColor(sf::Color::Green);
+//     window.draw(circle);
+
+//     // Draw the lights
+//     for (auto& light : j_lights)
+//         light.draw(window);
+// }
+// junction.cpp
+// #include "junction.hpp"
+// #include "app_utility.hpp"
+// #include "road.hpp"
+// #include <SFML/Graphics.hpp>
+
 void Junction::draw(sf::RenderWindow& window)
 {
+    // ----- base junction circle -----
     sf::CircleShape circle(j_radius);
-    circle.setOrigin({ j_radius, j_radius });
+    circle.setOrigin(j_radius, j_radius);
     circle.setPosition(j_position);
-    circle.setFillColor(sf::Color::Green);
+    circle.setFillColor(sf::Color(40, 40, 40));
+    circle.setOutlineThickness(2.f);
+    circle.setOutlineColor(sf::Color::White);
     window.draw(circle);
 
-    // Draw the lights
+    // ----- SOURCE marker (cyan ring) -----
+    if (is_source) {
+        sf::CircleShape ring(j_radius + 10.f);
+        ring.setOrigin(ring.getRadius(), ring.getRadius());
+        ring.setPosition(j_position);
+        ring.setFillColor(sf::Color::Transparent);
+        ring.setOutlineThickness(5.f);
+        ring.setOutlineColor(sf::Color::Cyan);
+        window.draw(ring);
+    }
+
+    // ----- DESTINATION marker (magenta ring) -----
+    if (is_destination) {
+        sf::CircleShape ring(j_radius + 10.f);
+        ring.setOrigin(ring.getRadius(), ring.getRadius());
+        ring.setPosition(j_position);
+        ring.setFillColor(sf::Color::Transparent);
+        ring.setOutlineThickness(5.f);
+        ring.setOutlineColor(sf::Color::Magenta);
+        window.draw(ring);
+    }
+
+    // ----- temporary selection pulse -----
+    if (is_selected) {
+        sf::CircleShape pulse(j_radius + 15.f);
+        pulse.setOrigin(pulse.getRadius(), pulse.getRadius());
+        pulse.setPosition(j_position);
+        pulse.setFillColor(sf::Color(255, 255, 255, 80));
+        window.draw(pulse);
+    }
+
+    // ----- traffic lights -----
     for (auto& light : j_lights)
         light.draw(window);
 }

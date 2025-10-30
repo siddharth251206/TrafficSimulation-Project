@@ -44,4 +44,11 @@ public:
     // Try to load a texture from a relative asset path, resolving across common bases.
     // Returns true on success and logs what happened.
     static bool try_load_texture(sf::Texture& tex, const std::string& relPath, const char* label);
+    
 };
+
+inline bool point_in_circle(const sf::Vector2f& center, float radius, const sf::Vector2f& point)
+{
+    const sf::Vector2f d = point - center;
+    return d.x * d.x + d.y * d.y <= radius * radius;
+}

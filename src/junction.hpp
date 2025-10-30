@@ -26,6 +26,16 @@ public:
     void install_light(sf::Time green_time);
     TrafficLight::State get_light_state_for_road(std::weak_ptr<Road> road);
 
+    // ----- NEW UI flags -------------------------------------------------
+    bool is_source = false;
+    bool is_destination = false;
+    bool is_selected = false;          // temporary highlight
+
+    // ----- NEW getters (so main.cpp can read private data) ------------
+    const std::vector<std::weak_ptr<Road>>& get_outgoing_roads() const { return j_roads_outgoing; }
+    std::queue<std::unique_ptr<Car>>& get_car_queue()                 { return j_car_queue; }
+    const std::queue<std::unique_ptr<Car>>& get_car_queue() const     { return j_car_queue; }
+
 private:
     void handle_car_redirection();
 

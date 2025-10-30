@@ -120,3 +120,27 @@ void CameraController::clamp_camera()
 
     m_camera.setCenter(center);
 }
+
+// camera.cpp   (add at the bottom of the file)
+void CameraController::handle_resize(unsigned int new_width, unsigned int new_height)
+{
+    // Preserve the current center before recreating the view
+    sf::Vector2f currentCenter = m_camera.getCenter();
+
+    // Re-create the view with the new size using the Vector2f-based constructor
+    m_camera = sf::View(sf::FloatRect(
+        sf::Vector2f{ 0.f, 0.f },
+        sf::Vector2f{ static_cast<float>(new_width), static_cast<float>(new_height) }
+    ));
+
+    // Restore the previous center and re-apply the zoom level
+    m_camera.setCenter(currentCenter);
+    if (m_zoomLevel > 0.f)
+        m_camera.zoom(m_zoomLevel);
+    else
+        m_zoomLevel = 1.f;
+
+    // Re-compute the max-zoom limit (your original code)
+    m_max_zoom = std::max((MAP_MAX_X - MAP_MIN_X) / static_cast<float>(new_width),
+                          (MAP_MAX_Y - MAP_MIN_Y) / static_cast<float>(new_height));
+}

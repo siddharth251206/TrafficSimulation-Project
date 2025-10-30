@@ -16,6 +16,7 @@ public:
     void handle_kb_panning(float deltaTime);
     void clamp_camera();
     const sf::View& get_camera() const { return m_camera; }
+    void handle_resize(unsigned int new_width, unsigned int new_height);
 
 private:
     // Constants for zoom limits

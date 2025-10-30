@@ -127,6 +127,15 @@ std::shared_ptr<DoubleRoad> TrafficMap::get_double_road(size_t index) const
     return nullptr;
 }
 
+std::vector<std::shared_ptr<Junction>> TrafficMap::get_all_junctions() const
+{
+    std::vector<std::shared_ptr<Junction>> all;
+    for (const auto& [grid, junctions] : m_junctions) {
+        all.insert(all.end(), junctions.begin(), junctions.end());
+    }
+    return all;
+}
+
 void TrafficMap::clear()
 {
     m_double_roads.clear();
