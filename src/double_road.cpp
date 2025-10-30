@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <optional>
+#include <filesystem>
 #include "app_utility.hpp"
 
 DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float width, bool has_divider)
@@ -74,7 +75,13 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
                 posx += dashLen + gapLen;
             }
             rt.display();
-            sRoadTex->loadFromImage(rt.getTexture().copyToImage());
+            auto img = rt.getTexture().copyToImage();
+            // Save a reusable generated texture for future runs
+            try {
+                std::filesystem::create_directories("assets");
+                img.saveToFile("assets/road.png");
+            } catch (...) {}
+            sRoadTex->loadFromImage(img);
         }
         if (sRoadTex)
             sRoadTex->setRepeated(true);

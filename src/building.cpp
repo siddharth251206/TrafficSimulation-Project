@@ -1,5 +1,6 @@
 #include "building.hpp"
 #include "app_utility.hpp"
+#include <filesystem>
 
 Building::Building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Color color)
 {
@@ -56,7 +57,14 @@ Building::Building(const sf::Vector2f& center, const sf::Vector2f& size, const s
         }
     }
     rt.display();
-    if (m_texture->loadFromImage(rt.getTexture().copyToImage()))
+    auto img = rt.getTexture().copyToImage();
+    // Save generated building sprite for future runs
+    try {
+        std::filesystem::path out = texturePath;
+        std::filesystem::create_directories(out.parent_path());
+        img.saveToFile(out);
+    } catch (...) {}
+    if (m_texture->loadFromImage(img))
     {
         sf::Sprite sprite(*m_texture);
         const sf::Vector2u texSize = m_texture->getSize();
