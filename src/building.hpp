@@ -1,21 +1,22 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <optional>
+#include <variant>
+#include <string>
 
 class Building
 {
 public:
-    Building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Color color)
-    {
-        m_shape.setSize(size);
-        m_shape.setOrigin(size / 2.f);
-        m_shape.setPosition(center);
-        m_shape.setFillColor(color);
-        m_shape.setOutlineThickness(2.f);
-        m_shape.setOutlineColor(sf::Color(30, 30, 35));
-    }
+    // Rectangle fallback building
+    Building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Color color);
 
-    void draw(sf::RenderWindow& window) const { window.draw(m_shape); }
+    // Sprite-based building (falls back to rect if texture cannot be loaded)
+    explicit Building(const sf::Vector2f& center, const sf::Vector2f& size, const std::string& texturePath);
+
+    void draw(sf::RenderWindow& window) const;
 
 private:
-    sf::RectangleShape m_shape;
+    // If sprite is used, keep the texture alive inside the object
+    std::optional<sf::Texture> m_texture;
+    std::variant<sf::RectangleShape, sf::Sprite> m_visual;
 };

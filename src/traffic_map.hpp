@@ -25,6 +25,7 @@ public:
 
     // Buildings
     void add_building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Color color = sf::Color(80, 80, 95));
+    void add_building(const sf::Vector2f& center, const sf::Vector2f& size, const std::string& texturePath);
 
     void update(sf::Time elapsed);
     void draw(sf::RenderWindow& window) const;

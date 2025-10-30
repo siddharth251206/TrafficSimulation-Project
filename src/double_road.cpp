@@ -1,6 +1,7 @@
 #include "double_road.hpp"
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include "app_utility.hpp"
 
 DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float width, bool has_divider)
     : m_width(width)
@@ -34,36 +35,70 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
 
     // Visual parameters
     const float divider_thickness = m_has_divider ? (m_width * 0.12f) : 0.f;
-    const float lane_half = (m_width - divider_thickness) / 2.f;
-    const sf::Color road_color(50, 50, 55);
-    const sf::Color edge_color(35, 35, 40);
+    const float lane_width = (m_width - divider_thickness);
 
-    // Helper to draw a quad given centerline endpoints and half-width
-    auto draw_strip = [&](sf::Vector2f a, sf::Vector2f b, float half_w, const sf::Color& color)
+    // Load road texture once (static)
+    static std::optional<sf::Texture> sRoadTex;
+    if (!sRoadTex)
     {
-        const sf::Vector2f perp = { m_perp_dir.x * half_w, m_perp_dir.y * half_w };
-        sf::ConvexShape quad(4);
-        quad.setPoint(0, a + perp);
-        quad.setPoint(1, a - perp);
-        quad.setPoint(2, b - perp);
-        quad.setPoint(3, b + perp);
-        quad.setFillColor(color);
-        window.draw(quad);
-    };
-
-    // Draw lane surfaces (two one-way lanes)
-    draw_strip(m_forward->get_start(), m_forward->get_end(), lane_half, road_color);
-    draw_strip(m_reverse->get_start(), m_reverse->get_end(), lane_half, road_color);
-
-    // Optional central divider
-    if (m_has_divider && divider_thickness > 0.f)
-    {
-        draw_strip(center_start, center_end, divider_thickness / 2.f, sf::Color(180, 140, 0));
+        sRoadTex.emplace();
+        bool loaded = false;
+        if (auto full = AssetHelper::resolve_asset_path("assets/road.png"))
+            loaded = sRoadTex->loadFromFile(*full);
+        if (!loaded)
+            if (auto full2 = AssetHelper::resolve_asset_path("assets/road_tile.png"))
+                loaded = sRoadTex->loadFromFile(*full2);
+        if (!loaded)
+            sRoadTex.reset();
+        else
+            sRoadTex->setRepeated(true);
     }
 
-    // Light road edges for subtle outline
-    draw_strip(m_forward->get_start(), m_forward->get_end(), 2.f, edge_color);
-    draw_strip(m_reverse->get_start(), m_reverse->get_end(), 2.f, edge_color);
+    auto draw_lane_sprite = [&](const std::shared_ptr<Road>& lane)
+    {
+        const float length = lane->getLength();
+        const sf::Vector2f a = lane->get_start();
+        const sf::Vector2f b = lane->get_end();
+        const sf::Vector2f mid = (a + b) / 2.f;
+        const sf::Vector2f dir = lane->get_direction();
+        const float angle = std::atan2(dir.y, dir.x);
+
+        sf::RectangleShape rect({ length, lane_width });
+        rect.setOrigin({ length / 2.f, lane_width / 2.f });
+        rect.setPosition(mid);
+        rect.setRotation(sf::radians(angle));
+
+        if (sRoadTex)
+        {
+            rect.setTexture(&*sRoadTex);
+            // Tile texture along the length
+            rect.setTextureRect(sf::IntRect(0, 0, static_cast<int>(length), static_cast<int>(lane_width)));
+        }
+        else
+        {
+            rect.setFillColor(sf::Color(50, 50, 55));
+        }
+        window.draw(rect);
+    };
+
+    // Draw two lane sprites
+    draw_lane_sprite(m_forward);
+    draw_lane_sprite(m_reverse);
+
+    // Optional central divider (simple yellow strip)
+    if (m_has_divider && divider_thickness > 0.f)
+    {
+        const sf::Vector2f mid = (center_start + center_end) / 2.f;
+        const sf::Vector2f diff = center_end - center_start;
+        const float len = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+        const float angle = std::atan2(diff.y, diff.x);
+        sf::RectangleShape divider({ len, divider_thickness });
+        divider.setOrigin({ len / 2.f, divider_thickness / 2.f });
+        divider.setPosition(mid);
+        divider.setRotation(sf::radians(angle));
+        divider.setFillColor(sf::Color(180, 140, 0));
+        window.draw(divider);
+    }
 
     // Draw cars on top
     m_forward->draw_cars(window);
