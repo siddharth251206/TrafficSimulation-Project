@@ -145,6 +145,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <optional>
 
 int main()
 {
@@ -234,16 +235,16 @@ int main()
     // --------------------------------------------------------------
     // FONT / TEXT (safe fallback)
     // --------------------------------------------------------------
-    sf::Font font;
-    const bool font_ok = font.loadFromFile("assets/fonts/Roboto-Regular.ttf");
+    // sf::Font font;
+    // const bool font_ok = font.loadFromFile("assets/fonts/Roboto-Regular.ttf");
 
-    sf::Text ui_text;
-    if (font_ok) {
-        ui_text.setFont(font);
-        ui_text.setCharacterSize(18);
-        ui_text.setFillColor(sf::Color::White);
-        ui_text.setPosition(sf::Vector2f(10.f, 10.f));
-    }
+    // sf::Text ui_text;
+    // if (font_ok) {
+    //     ui_text.setFont(font);
+    //     ui_text.setCharacterSize(18);
+    //     ui_text.setFillColor(sf::Color::White);
+    //     ui_text.setPosition(sf::Vector2f(10.f, 10.f));
+    // }
 
     // --------------------------------------------------------------
     // OPTIONAL TRAFFIC LIGHTS
@@ -266,80 +267,74 @@ int main()
         float dt = elapsed.asSeconds();
 
         // ---------- EVENT POLLING ----------
-        sf::Event event;
-        while (window.pollEvent(event))
+        while (const std::optional<sf::Event> event = window.pollEvent())
         {
             // ---- CLOSE ----
-            if (event.type == sf::Event::Closed)
+            if (event->is<sf::Event::Closed>())
                 window.close();
 
             // ---- RESIZE ----
-            if (event.type == sf::Event::Resized) {
-                width  = event.size.width;
-                height = event.size.height;
-                camera_controller.handle_resize(width, height);   // NEW
+            if (const auto* wrz = event->getIf<sf::Event::Resized>()) {
+                width  = wrz->size.x;
+                height = wrz->size.y;
+                camera_controller.handle_resize(width, height);
             }
 
             // ---- ZOOM ----
-            if (event.type == sf::Event::MouseWheelScrolled) {
-                camera_controller.handle_zoom(window,
-                                              &event.mouseWheelScroll,
-                                              width, height);
+            if (const auto* wheel = event->getIf<sf::Event::MouseWheelScrolled>()) {
+                camera_controller.handle_zoom(window, wheel, width, height);
             }
 
             // ---- MIDDLE-DRAG PAN ----
-            if (event.type == sf::Event::MouseButtonPressed ||
-                event.type == sf::Event::MouseButtonReleased ||
-                event.type == sf::Event::MouseMoved)
+            if (event->is<sf::Event::MouseButtonPressed>() ||
+                event->is<sf::Event::MouseButtonReleased>() ||
+                event->is<sf::Event::MouseMoved>())
             {
-                camera_controller.handle_mouse_drag(window,
-                    std::optional<sf::Event>(event));
+                camera_controller.handle_mouse_drag(window, event);
             }
 
             // ---- UI: LEFT / RIGHT CLICK ----
-            if (event.type == sf::Event::MouseButtonPressed) {
-                sf::Vector2i pixel(event.mouseButton.x, event.mouseButton.y);
-                sf::Vector2f world = window.mapPixelToCoords(pixel,
-                                    camera_controller.get_camera());
+        //     if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>()) {
+        //         const sf::Vector2i pixel = mbp->position;
+        //         const sf::Vector2f world = window.mapPixelToCoords(pixel, camera_controller.get_camera());
 
-                if (event.mouseButton.button == sf::Mouse::Left) {
-                    bool hit = false;
-                    for (auto& j : traffic_map.get_all_junctions()) {
-                        if (point_in_circle(j->get_location(), 25.f, world)) {
-                            j->is_selected = true;
-                            hit = true;
+        //         if (mbp->button == sf::Mouse::Left) {
+        //             bool hit = false;
+        //             for (auto& j : traffic_map.get_all_junctions()) {
+        //                 if (point_in_circle(j->get_location(), 25.f, world)) {
+        //                     j->is_selected = true;
+        //                     hit = true;
 
-                            if (mode == SelectionMode::None ||
-                                mode == SelectionMode::ChoosingSource) {
-                                if (source_junction) source_junction->is_source = false;
-                                source_junction = j;
-                                j->is_source = true;
-                                mode = SelectionMode::ChoosingDestination;
-                            }
-                            else if (mode == SelectionMode::ChoosingDestination) {
-                                if (dest_junction) dest_junction->is_destination = false;
-                                dest_junction = j;
-                                j->is_destination = true;
-                                mode = SelectionMode::None;
-                            }
-                            break;
-                        }
-                    }
-                    if (!hit) {
-                        if (source_junction) source_junction->is_source = false;
-                        if (dest_junction)   dest_junction->is_destination = false;
-                        source_junction = dest_junction = nullptr;
-                        mode = SelectionMode::None;
-                    }
-                }
-                else if (event.mouseButton.button == sf::Mouse::Right) {
-                    for (auto& j : traffic_map.get_all_junctions())
-                        j->is_source = j->is_destination = j->is_selected = false;
-                    source_junction = dest_junction = nullptr;
-                    mode = SelectionMode::None;
-                }
-            }
-        }
+        //                     if (mode == SelectionMode::None || mode == SelectionMode::ChoosingSource) {
+        //                         if (source_junction) source_junction->is_source = false;
+        //                         source_junction = j;
+        //                         j->is_source = true;
+        //                         mode = SelectionMode::ChoosingDestination;
+        //                     }
+        //                     else if (mode == SelectionMode::ChoosingDestination) {
+        //                         if (dest_junction) dest_junction->is_destination = false;
+        //                         dest_junction = j;
+        //                         j->is_destination = true;
+        //                         mode = SelectionMode::None;
+        //                     }
+        //                     break;
+        //                 }
+        //             }
+        //             if (!hit) {
+        //                 if (source_junction) source_junction->is_source = false;
+        //                 if (dest_junction)   dest_junction->is_destination = false;
+        //                 source_junction = dest_junction = nullptr;
+        //                 mode = SelectionMode::None;
+        //             }
+        //         }
+        //         else if (mbp->button == sf::Mouse::Right) {
+        //             for (auto& j : traffic_map.get_all_junctions())
+        //                 j->is_source = j->is_destination = j->is_selected = false;
+        //             source_junction = dest_junction = nullptr;
+        //             mode = SelectionMode::None;
+        //         }
+        //     }
+        // }
 
         // ---- clear highlight ----
         for (auto& j : traffic_map.get_all_junctions()) j->is_selected = false;
@@ -375,23 +370,23 @@ int main()
         traffic_map.draw(window);
 
         // ---- UI TEXT ----
-        if (font_ok) {
-            std::string txt = "L-Click: Source to Dest | R-Click: Clear";
-            if (source_junction && dest_junction) {
-                txt = "Route: (" +
-                      std::to_string((int)source_junction->get_location().x) + "," +
-                      std::to_string((int)source_junction->get_location().y) + ") to (" +
-                      std::to_string((int)dest_junction->get_location().x) + "," +
-                      std::to_string((int)dest_junction->get_location().y) + ")";
-            }
-            else if (source_junction) {
-                txt = "Source selected – click destination.";
-            }
-            ui_text.setString(txt);
-            window.setView(window.getDefaultView());
-            window.draw(ui_text);
-            window.setView(camera_controller.get_camera());
-        }
+        // if (font_ok) {
+        //     std::string txt = "L-Click: Source to Dest | R-Click: Clear";
+        //     if (source_junction && dest_junction) {
+        //         txt = "Route: (" +
+        //               std::to_string((int)source_junction->get_location().x) + "," +
+        //               std::to_string((int)source_junction->get_location().y) + ") to (" +
+        //               std::to_string((int)dest_junction->get_location().x) + "," +
+        //               std::to_string((int)dest_junction->get_location().y) + ")";
+        //     }
+        //     else if (source_junction) {
+        //         txt = "Source selected – click destination.";
+        //     }
+        //     ui_text.setString(txt);
+        //     window.setView(window.getDefaultView());
+        //     window.draw(ui_text);
+        //     window.setView(camera_controller.get_camera());
+        // }
 
         window.display();
     }

@@ -5,7 +5,7 @@
 #include <optional>
 #include <random>
 
-bool point_in_circle(sf::Vector2f centre, float radius, sf::Vector2f point);
+// bool point_in_circle(sf::Vector2f centre, float radius, sf::Vector2f point);
 
 // RNG singleton
 class RNG
