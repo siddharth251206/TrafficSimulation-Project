@@ -1,9 +1,17 @@
 {
-  "name": "my-project",
+  "name": "traffic-simulation",
   "version": "1.0.0",
-  "description": "A modern C++23 project.",
+  "description": "A modern C++23 traffic simulation project.",
   "dependencies": [
-    "catch2",
-    "sfml"
-  ]
+    {
+      "name": "catch2",
+      "default-features": true
+    },
+    {
+      "name": "sfml",
+      "default-features": true
+    }
+  ],
+  "builtin-baseline": "c59b04f668d20c7dd83f478835e8266a3cc51270"
+
 }

@@ -1,24 +1,36 @@
-add_executable(${PROJECT_NAME}_app
-        main.cpp
-        car.cpp
-        road.cpp
-	      app_utility.cpp
-        junction.cpp
-		    traffic_map.cpp
-        double_road.cpp
-        traffic_light.cpp
-        camera.cpp
+# --- Library Target ---
+add_library(TrafficSimulation_lib
+    app_utility.cpp
+    camera.cpp
+    car.cpp
+    bike.cpp
+    truck.cpp
+    double_road.cpp
+    junction.cpp
+    road.cpp
+    traffic_light.cpp
+    traffic_map.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}_app
-  PRIVATE
-    ${PROJECT_NAME}_options
-    ${PROJECT_NAME}_warnings
+target_include_directories(TrafficSimulation_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-    # Link library targets here, for example:
-    # fmt::fmt
-    SFML::System
-    SFML::Window
-    SFML::Graphics
-    SFML::Audio
+target_link_libraries(TrafficSimulation_lib
+    PRIVATE
+        TrafficSimulation_options
+        TrafficSimulation_warnings
+        sfml-graphics
+        sfml-window
+        sfml-system
+        sfml-audio
+        sfml-network
 )
+
+# --- Executable Target ---
+add_executable(TrafficSimulation main.cpp)
+
+target_link_libraries(TrafficSimulation
+    PRIVATE
+        TrafficSimulation_lib
+)
+
+

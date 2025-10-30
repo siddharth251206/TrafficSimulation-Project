@@ -17,7 +17,8 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture) : m_road(r
         const sf::FloatRect bounds = m_sprite.getLocalBounds();
         const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
         m_sprite.setOrigin(originPoint);
-        m_sprite.setScale({ 0.5f, 0.5f });
+        // Set a default scale for the base car
+        m_sprite.setScale({ 0.028f, 0.028f }); 
     }
     else
     {
@@ -68,7 +69,10 @@ void Car::update(sf::Time elapsed)
             m_sprite->setPosition(m_position);
             const sf::Vector2f direction = road_ptr->get_direction();
             const float angle_rad = std::atan2(direction.y, direction.x);
-            m_sprite->setRotation(sf::radians(angle_rad));
+            
+            // --- FIX for SFML 3 ---
+            // We must add an sf::Angle object, not a float
+            m_sprite->setRotation(sf::radians(angle_rad) + sf::degrees(90.f)); 
         }
         else
         {

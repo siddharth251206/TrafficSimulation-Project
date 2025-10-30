@@ -15,10 +15,14 @@ class Car
 public:
     // Supports optional sprite texture; falls back to a rectangle if no texture provided
     explicit Car(const std::weak_ptr<Road>& road, const sf::Texture* texture = nullptr);
-    void update(sf::Time elapsed);
-    void draw(sf::RenderWindow& window);
+    // VIRTUAL functions allow child classes (Bike, Truck) to override them if needed
+    virtual void update(sf::Time elapsed);
+    virtual void draw(sf::RenderWindow& window);
+    
+    // VIRTUAL destructor is CRITICAL for a base class
+    virtual ~Car() = default;
 
-private:
+protected:
     // Road reference and kinematics
     std::weak_ptr<Road> m_road;
     float m_relative_distance = 0.f;

@@ -1,11 +1,15 @@
 #include "camera.hpp"
 #include "traffic_light.hpp"
 #include "traffic_map.hpp"
+#include "app_utility.hpp" // <-- ADDED THIS INCLUDE FOR THE RANDOM NUMBER GENERATOR (RNG)
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
+#include "bike.hpp"
+#include "truck.hpp"
+
 
 int main()
 {
@@ -18,6 +22,7 @@ int main()
     TrafficMap traffic_map;
 
     // ------ SVNIT MAP ------
+    // ... (all your traffic_map.add_double_road calls are perfect, no changes needed) ...
     const sf::Vector2f gajjar_junction = { 700.f, 100.f };
     const sf::Vector2f bhabha_junction = { 200.f, 100.f };
     const sf::Vector2f nehru_junction = { 100.f, 100.f };
@@ -63,19 +68,20 @@ int main()
     traffic_map.add_double_road(department_junction, quarters_junction, 15.f);
     traffic_map.add_double_road(department_junction, admin_junction, 15.f);
 
-    // Load car texture
+    // Load textures (Your code here is perfect)
     sf::Texture car_texture;
-    bool loaded = false;
-    loaded = AssetHelper::try_load_texture(car_texture, "assets/premium_car.png", "premium car");
-    if (!loaded)
-        loaded =
-            AssetHelper::try_load_texture(car_texture, "assets/advanced_car.png", "advanced car");
-    if (!loaded)
-        loaded = AssetHelper::try_load_texture(car_texture, "assets/car.png", "simple car");
+    sf::Texture bike_texture;
+    sf::Texture truck_texture;
+    bool carLoaded = AssetHelper::try_load_texture(car_texture, "assets/car2.png", "Car");
+    bool bikeLoaded = AssetHelper::try_load_texture(bike_texture, "assets/bike.png", "Bike");
+    bool truckLoaded = AssetHelper::try_load_texture(truck_texture, "assets/truck.png", "Truck");
 
-    // Car spawner logic
+    // --- REMOVED THE PLACEHOLDER ROAD AND VEHICLES ---
+    // We will spawn vehicles directly onto the traffic_map instead.
+
+    // Vehicle spawner logic
     sf::Clock spawn_timer;
-    int max_cars = 5;
+    int max_vehicles = 5; // Renamed from max_cars
     int spawned_count = 0;
 
     CameraController camera_controller(static_cast<float>(width), static_cast<float>(height));
@@ -98,29 +104,46 @@ int main()
                 height = wrz->size.y;
             }
 
-            // Smooth zooming centered on mouse cursor
             if (const auto* wheel = event->getIf<sf::Event::MouseWheelScrolled>())
                 camera_controller.handle_zoom(window, wheel, width, height);
 
-            // Handle mouse dragging
             camera_controller.handle_mouse_drag(window, event);
         }
 
-        // Smooth keyboard panning
         camera_controller.handle_kb_panning(deltaTime);
-
-        // Clamp camera to map boundaries with safety checks
         camera_controller.clamp_camera();
 
-        // Spawn cars
-        if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 1.5f)
+        // --- MODIFIED SPAWNER LOGIC ---
+        // Spawn vehicles
+        if (spawned_count < max_vehicles && spawn_timer.getElapsedTime().asSeconds() > 1.5f)
         {
+            // Get the first road from the map to spawn on
+            // You could also pick a random road here
             if (auto road = traffic_map.get_double_road(0))
             {
+            // Randomly pick which vehicle to spawn (0=car, 1=bike, 2=truck)
+            size_t vehicle_type = RNG::instance().getIndex(0, 2);
+
+            if (vehicle_type == 0)
+            {
                 road->add_to_forward(
-                    std::make_unique<Car>(road->get_forward(), loaded ? &car_texture : nullptr)
+                std::make_unique<Car>(road->get_forward(), carLoaded ? &car_texture : nullptr)
                 );
-                spawned_count++;
+            }
+            else if (vehicle_type == 1)
+            {
+                road->add_to_forward(
+                std::make_unique<Bike>(road->get_forward(), bikeLoaded ? &bike_texture : nullptr)
+                );
+            }
+            else
+            {
+                road->add_to_forward(
+                std::make_unique<Truck>(road->get_forward(), truckLoaded ? &truck_texture : nullptr)
+                );
+            }
+
+            spawned_count++;
             }
             spawn_timer.restart();
         }

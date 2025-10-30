@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-# --- vcpkg Integration Fallback ---
+# --- vcpkg Integration ---
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     include(cmake/vcpkg-root-finder.cmake)
     find_vcpkg_root()
@@ -12,27 +12,78 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     endif()
 endif()
 
-# TODO: Change 'MyProject' to your actual project name
+# --- Project Info ---
 project(
-  MyProject
+  TrafficSimulation
   VERSION 0.1.0
-  DESCRIPTION "A modern C++23 project"
+  DESCRIPTION "A Traffic Simulation Project using SFML"
   LANGUAGES CXX
 )
 
-# --- Configuration (C++ standards, build types, etc.)---
+# --- Configurations ---
 include(cmake/project-options.cmake)
-
-# --- Dependencies ---
 include(cmake/dependencies.cmake)
 
-# --- Project Targets (includes directory, interface targets for options and warnings) ---
-include(cmake/project-targets.cmake)
+# --- SFML Dependency ---
+find_package(SFML CONFIG REQUIRED COMPONENTS Graphics Window System Audio Network)
 
-# --- Add Source Code ---
-add_subdirectory(src)
+# --- Option and Warning Targets ---
+add_library(${PROJECT_NAME}_options INTERFACE)
+add_library(${PROJECT_NAME}_warnings INTERFACE)
 
-# --- Testing (if this is the main project) ---
+if(COMMAND set_project_warnings)
+    set_project_warnings(${PROJECT_NAME}_warnings)
+endif()
+
+if(COMMAND set_project_options)
+    set_project_options(${PROJECT_NAME}_options)
+endif()
+
+# --- Add Library (Core Logic) ---
+add_library(${PROJECT_NAME}_lib
+    src/car.cpp
+    src/bike.cpp
+    src/truck.cpp
+    src/road.cpp
+    src/traffic_light.cpp
+    src/junction.cpp
+    src/double_road.cpp
+    src/camera.cpp
+    src/app_utility.cpp
+    src/traffic_map.cpp
+)
+
+target_include_directories(${PROJECT_NAME}_lib
+    PUBLIC ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(${PROJECT_NAME}_lib
+    PRIVATE
+        ${PROJECT_NAME}_options
+        ${PROJECT_NAME}_warnings
+        SFML::Graphics
+        SFML::Window
+        SFML::System
+        SFML::Audio
+        SFML::Network
+)
+
+# --- Main Executable ---
+add_executable(${PROJECT_NAME} src/main.cpp)
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        ${PROJECT_NAME}_lib
+        ${PROJECT_NAME}_options
+        ${PROJECT_NAME}_warnings
+        SFML::Graphics
+        SFML::Window
+        SFML::System
+        SFML::Audio
+        SFML::Network
+)
+
+# --- Testing (only for root project) ---
 if(PROJECT_IS_TOP_LEVEL)
-  include(cmake/testing.cmake)
+    include(cmake/testing.cmake)
 endif()
