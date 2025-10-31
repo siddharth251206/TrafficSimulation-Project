@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "environment_manager.hpp"
 #include "traffic_light.hpp"
 #include "traffic_map.hpp"
 #include <SFML/Graphics.hpp>
@@ -16,6 +17,9 @@ int main()
 
     // Initialize traffic map
     TrafficMap traffic_map;
+    
+    // Initialize environment manager
+    EnvironmentManager environment_manager;
 
     // ------ SVNIT MAP ------
     const sf::Vector2f gajjar_junction = { 700.f, 100.f };
@@ -62,6 +66,12 @@ int main()
     traffic_map.add_double_road(department_junction, gate2_junction, 15.f);
     traffic_map.add_double_road(department_junction, quarters_junction, 15.f);
     traffic_map.add_double_road(department_junction, admin_junction, 15.f);
+    
+    // Initialize environment with buildings and decorations
+    environment_manager.initialize_from_traffic_map(traffic_map);
+    
+    // Optional: Enable day/night cycle (uncomment to activate)
+    // environment_manager.enable_day_night_cycle(true);
 
     // Load car texture
     sf::Texture car_texture;
@@ -126,9 +136,19 @@ int main()
         }
 
         // Update and render
+        environment_manager.update(elapsed);
         traffic_map.update(elapsed);
         window.setView(camera_controller.get_camera());
-        window.clear(sf::Color(20, 20, 40));
+        
+        // Apply day/night background color if enabled
+        sf::Color bg_color = environment_manager.get_ambient_color();
+        bg_color.r = static_cast<unsigned char>(bg_color.r * 0.08f);
+        bg_color.g = static_cast<unsigned char>(bg_color.g * 0.08f);
+        bg_color.b = static_cast<unsigned char>(bg_color.b * 0.16f);
+        window.clear(bg_color);
+        
+        // Draw in correct order: buildings -> roads -> cars
+        environment_manager.draw_environment(window);
         traffic_map.draw(window);
         window.display();
     }

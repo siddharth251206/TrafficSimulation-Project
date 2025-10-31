@@ -8,6 +8,8 @@ add_executable(${PROJECT_NAME}_app
         double_road.cpp
         traffic_light.cpp
         camera.cpp
+        building.cpp
+        environment_manager.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app
