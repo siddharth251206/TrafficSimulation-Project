@@ -46,6 +46,15 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <SFML/System/Vector2.hpp>
+
+// Strict weak ordering for sf::Vector2i so it can be used as a key in std::map
+struct Vec2iLess {
+    bool operator()(const sf::Vector2i& a, const sf::Vector2i& b) const noexcept {
+        if (a.x != b.x) return a.x < b.x;
+        return a.y < b.y;
+    }
+};
 
 class TrafficMap
 {
@@ -70,5 +79,5 @@ public:
 private:
     std::vector<std::shared_ptr<Road>> m_single_roads;
     std::vector<std::shared_ptr<DoubleRoad>> m_double_roads;
-    std::map<sf::Vector2i, std::vector<std::shared_ptr<Junction>>> m_junctions;
+    std::map<sf::Vector2i, std::vector<std::shared_ptr<Junction>>, Vec2iLess> m_junctions;
 };

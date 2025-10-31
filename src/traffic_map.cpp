@@ -1,6 +1,7 @@
 #include "traffic_map.hpp"
+#include "app_utility.hpp"
 #include <memory>
-#include <ranges>
+#include <cmath>
 
 void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end_pos)
 {
@@ -92,9 +93,10 @@ void TrafficMap::update(sf::Time elapsed)
     for (const auto& road : m_single_roads)
         road->update(elapsed);
 
-    for (const auto& junction_grid : m_junctions | std::views::values)
+    for (const auto& [grid, junction_grid] : m_junctions)
     {
-        for (auto junction : junction_grid)
+        (void)grid;
+        for (auto& junction : junction_grid)
             junction->update(elapsed);
     }
 }
@@ -106,9 +108,10 @@ void TrafficMap::draw(sf::RenderWindow& window) const
     for (const auto& road : m_single_roads)
         road->draw(window);
 
-    for (const auto& junction_grid : m_junctions | std::views::values)
+    for (const auto& [grid, junction_grid] : m_junctions)
     {
-        for (auto junction : junction_grid)
+        (void)grid;
+        for (const auto& junction : junction_grid)
             junction->draw(window);
     }
 }

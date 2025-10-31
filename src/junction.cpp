@@ -39,21 +39,47 @@ void Junction::update(sf::Time elapsed)
     }
 }
 
+// void Junction::handle_car_redirection()
+// {
+//     auto in_car = std::move(j_car_queue.front());
+//     j_car_queue.pop();
+
+//     if (j_roads_outgoing.empty())
+//     {
+//         in_car.reset();
+//         return;
+//     }
+
+//     size_t idx = RNG::instance().getIndex(0, j_roads_outgoing.size() - 1);
+//     const std::shared_ptr<Road> next_road = j_roads_outgoing[idx].lock();
+
+//     in_car->m_relative_distance = 0.0F;
+//     in_car->m_road = next_road;
+//     next_road->add(std::move(in_car));
+// }
+
 void Junction::handle_car_redirection()
 {
     auto in_car = std::move(j_car_queue.front());
     j_car_queue.pop();
 
-    if (j_roads_outgoing.empty())
-    {
-        in_car.reset();
-        return;
+    // ===== DESPAWN IF DESTINATION =====
+    if (is_destination) {
+        return;  // Car is destroyed (unique_ptr out of scope)
+    }
+
+    // ===== NORMAL REDIRECTION =====
+    if (j_roads_outgoing.empty()) {
+        return;  // Destroy if no outgoing roads
     }
 
     size_t idx = RNG::instance().getIndex(0, j_roads_outgoing.size() - 1);
-    const std::shared_ptr<Road> next_road = j_roads_outgoing[idx].lock();
+    auto next_road = j_roads_outgoing[idx].lock();
+    if (!next_road) {
+        return;  // Defensive: invalid road
+    }
 
-    in_car->m_relative_distance = 0.0F;
+    in_car->m_relative_distance = 0.0f;
     in_car->m_road = next_road;
     next_road->add(std::move(in_car));
 }
@@ -105,7 +131,7 @@ void Junction::draw(sf::RenderWindow& window)
 {
     // ----- base junction circle -----
     sf::CircleShape circle(j_radius);
-    circle.setOrigin(j_radius, j_radius);
+    circle.setOrigin(sf::Vector2f{ j_radius, j_radius });
     circle.setPosition(j_position);
     circle.setFillColor(sf::Color(40, 40, 40));
     circle.setOutlineThickness(2.f);
@@ -115,7 +141,7 @@ void Junction::draw(sf::RenderWindow& window)
     // ----- SOURCE marker (cyan ring) -----
     if (is_source) {
         sf::CircleShape ring(j_radius + 10.f);
-        ring.setOrigin(ring.getRadius(), ring.getRadius());
+        ring.setOrigin(sf::Vector2f{ ring.getRadius(), ring.getRadius() });
         ring.setPosition(j_position);
         ring.setFillColor(sf::Color::Transparent);
         ring.setOutlineThickness(5.f);
@@ -126,7 +152,7 @@ void Junction::draw(sf::RenderWindow& window)
     // ----- DESTINATION marker (magenta ring) -----
     if (is_destination) {
         sf::CircleShape ring(j_radius + 10.f);
-        ring.setOrigin(ring.getRadius(), ring.getRadius());
+        ring.setOrigin(sf::Vector2f{ ring.getRadius(), ring.getRadius() });
         ring.setPosition(j_position);
         ring.setFillColor(sf::Color::Transparent);
         ring.setOutlineThickness(5.f);
@@ -137,7 +163,7 @@ void Junction::draw(sf::RenderWindow& window)
     // ----- temporary selection pulse -----
     if (is_selected) {
         sf::CircleShape pulse(j_radius + 15.f);
-        pulse.setOrigin(pulse.getRadius(), pulse.getRadius());
+        pulse.setOrigin(sf::Vector2f{ pulse.getRadius(), pulse.getRadius() });
         pulse.setPosition(j_position);
         pulse.setFillColor(sf::Color(255, 255, 255, 80));
         window.draw(pulse);
