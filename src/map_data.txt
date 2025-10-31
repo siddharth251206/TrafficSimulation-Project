@@ -1,0 +1,315 @@
+This file defines the traffic map.
+
+Format:
+
+junction <name> <x_coord> <y_coord>
+
+road <junction_name_1> <junction_name_2> <width> <need_divider_bool (true/false)>
+
+--- MAIN CAMPUS GRID EXPANDED ---
+
+junction gajjar_junction 700 100
+junction bhabha_junction 200 100
+junction nehru_junction 100 100
+junction swami_junction 100 200
+junction swami_entrance_junction 200 200
+junction quarters_junction 700 375
+junction canteen_junction 200 375
+junction temple_junction 900 300
+junction gate1_junction 200 700
+junction gate2_junction 700 700
+junction library_junction 300 375
+junction admin_junction 300 500
+junction department_junction 700 500
+
+--- NEW EXTENDED AREA ---
+
+junction north_road1 100 50
+junction north_road2 200 50
+junction north_road3 400 50
+junction north_road4 700 50
+junction north_road5 900 50
+
+junction east_road1 1000 100
+junction east_road2 1000 300
+junction east_road3 1000 500
+junction east_road4 1000 700
+
+junction west_road1 50 100
+junction west_road2 50 300
+junction west_road3 50 500
+junction west_road4 50 700
+
+junction south_road1 100 800
+junction south_road2 300 800
+junction south_road3 500 800
+junction south_road4 700 800
+junction south_road5 900 800
+junction south_road6 1000 800
+
+junction sports_junction 500 500
+junction hostel_junction 500 300
+junction lab_junction 400 500
+junction parking_junction 900 500
+junction cafeteria_junction 500 375
+
+--- ADDITIONAL EASTERN JUNCTIONS ---
+
+junction east1 1100 100
+junction east2 1100 300
+junction east3 1100 500
+junction east4 1100 700
+junction east5 1300 100
+junction east6 1300 300
+junction east7 1300 500
+junction east8 1300 700
+junction east9 1500 100
+junction east10 1500 300
+junction east11 1500 500
+junction east12 1500 700
+junction east13 1700 100
+junction east14 1700 300
+junction east15 1700 500
+junction east16 1700 700
+
+--- ADDITIONAL SOUTH-EASTERN EXPANSION ---
+
+junction se1 1100 950
+junction se2 1100 1150
+junction se3 1100 1350
+junction se4 1100 1550
+junction se5 1300 950
+junction se6 1300 1150
+junction se7 1300 1350
+junction se8 1300 1550
+junction se9 1500 950
+junction se10 1500 1150
+junction se11 1500 1350
+junction se12 1500 1550
+junction se13 1700 950
+junction se14 1700 1150
+junction se15 1700 1350
+junction se16 1700 1550
+
+--- NEW WEST-SOUTH EXPANSION ---
+
+junction ls1 50 950
+junction ls2 50 1150
+junction ls3 50 1350
+junction ls4 50 1550
+junction lm1 250 950
+junction lm2 250 1150
+junction lm3 250 1350
+junction lm4 250 1550
+junction lr1 450 950
+junction lr2 450 1150
+junction lr3 450 1350
+junction lr4 450 1550
+junction lx1 650 950
+junction lx2 650 1150
+junction lx3 650 1350
+junction lx4 650 1550
+
+--- ANONYMOUS JUNCTIONS (from original main.cpp) ---
+
+junction j_200_465 200 465
+junction j_200_300 200 300
+junction j_700_300 700 300
+junction j_900_375 900 375
+junction j_900_100 900 100
+junction j_100_375 100 375
+junction j_100_465 100 465
+junction j_100_700 100 700
+junction j_300_700 300 700
+
+---------------- ADD ROADS ----------------
+
+Original campus roads
+
+road gate1_junction j_200_465 15 false
+road bhabha_junction gajjar_junction 15 true
+road nehru_junction bhabha_junction 15 true
+road nehru_junction swami_junction 15 true
+road bhabha_junction swami_entrance_junction 15 true
+road swami_junction swami_entrance_junction 15 true
+road swami_entrance_junction j_200_300 15 true
+road j_200_300 j_700_300 15 true
+road gajjar_junction j_700_300 15 true
+road j_200_300 canteen_junction 15 true
+road canteen_junction quarters_junction 15 true
+road j_700_300 quarters_junction 15 true
+road j_700_300 temple_junction 15 true
+road quarters_junction j_900_375 15 true
+road gajjar_junction j_900_100 15 true
+road j_900_100 temple_junction 15 true
+road j_900_375 temple_junction 15 true
+road j_100_375 canteen_junction 15 true
+road canteen_junction j_200_465 15 true
+road j_100_465 j_200_465 15 true
+road j_100_465 j_100_375 15 true
+road j_100_465 j_100_700 15 true
+road j_100_700 gate1_junction 15 true
+road gate1_junction gate2_junction 15 true
+road library_junction admin_junction 15 true
+road admin_junction j_300_700 15 true
+road department_junction gate2_junction 15 true
+road department_junction quarters_junction 15 true
+road department_junction admin_junction 15 true
+
+--- NEW ROADS ---
+
+Northern
+
+road north_road1 north_road5 15 true
+road north_road1 nehru_junction 15 true
+road north_road5 j_900_100 15 true
+
+East
+
+road temple_junction east_road2 15 true
+road east_road1 east_road2 15 true
+road east_road2 east_road3 15 true
+road east_road3 east_road4 15 true
+road east_road4 south_road6 15 true
+
+West (small existing)
+
+road west_road1 west_road2 15 true
+road west_road2 west_road3 15 true
+road west_road3 west_road4 15 true
+road west_road4 south_road1 15 true
+road west_road1 nehru_junction 15 true
+
+Central
+
+road hostel_junction cafeteria_junction 15 true
+road cafeteria_junction library_junction 15 true
+road lab_junction admin_junction 15 true
+road sports_junction lab_junction 15 true
+road sports_junction department_junction 15 true
+road parking_junction temple_junction 15 true
+road parking_junction department_junction 15 true
+road hostel_junction gajjar_junction 15 true
+
+--- CONNECT EASTERN JUNCTIONS HORIZONTALLY ---
+
+road east1 east5 15 true
+road east2 east6 15 true
+road east3 east7 15 true
+road east4 east8 15 true
+road east5 east9 15 true
+road east6 east10 15 true
+road east7 east11 15 true
+road east8 east12 15 true
+road east9 east13 15 true
+road east10 east14 15 true
+road east11 east15 15 true
+road east12 east16 15 true
+
+--- CONNECT EASTERN JUNCTIONS VERTICALLY ---
+
+road east1 east2 15 true
+road east2 east3 15 true
+road east3 east4 15 true
+road east5 east6 15 true
+road east6 east7 15 true
+road east7 east8 15 true
+road east9 east10 15 true
+road east10 east11 15 true
+road east11 east12 15 true
+road east13 east14 15 true
+road east14 east15 15 true
+road east15 east16 15 true
+
+--- CONNECT OLD MAP TO NEW EASTERN AREA ---
+
+road temple_junction east2 15 true
+road parking_junction east7 15 true
+road east4 south_road6 15 true
+
+--- CONNECT SOUTH-EAST JUNCTIONS HORIZONTALLY ---
+
+road se1 se5 15 true
+road se2 se6 15 true
+road se3 se7 15 true
+road se4 se8 15 true
+road se5 se9 15 true
+road se6 se10 15 true
+road se7 se11 15 true
+road se8 se12 15 true
+road se9 se13 15 true
+road se10 se14 15 true
+road se11 se15 15 true
+road se12 se16 15 true
+
+--- CONNECT SOUTH-EAST JUNCTIONS VERTICALLY ---
+
+road se1 se2 15 true
+road se2 se3 15 true
+road se3 se4 15 true
+road se5 se6 15 true
+road se6 se7 15 true
+road se7 se8 15 true
+road se9 se10 15 true
+road se10 se11 15 true
+road se11 se12 15 true
+road se13 se14 15 true
+road se14 se15 15 true
+road se15 se16 15 true
+
+--- CONNECT UPPER EAST BLOCK TO LOWER SOUTH-EAST BLOCK ---
+
+road east4 se1 15 true
+road east8 se5 15 true
+road east12 se9 15 true
+road east16 se13 15 true
+
+--- EXTRA LINKS FOR FLOW AND BALANCE ---
+
+road se1 se6 15 true
+road se5 se10 15 true
+road se9 se14 15 true
+road se13 se16 15 true
+road se4 se8 15 true
+
+--- NEW WEST-SOUTH EXPANSION (GRID CONNECTIONS) ---
+
+vertical links
+
+road ls1 ls2 15 true
+road ls2 ls3 15 true
+road ls3 ls4 15 true
+road lm1 lm2 15 true
+road lm2 lm3 15 true
+road lm3 lm4 15 true
+road lr1 lr2 15 true
+road lr2 lr3 15 true
+road lr3 lr4 15 true
+road lx1 lx2 15 true
+road lx2 lx3 15 true
+road lx3 lx4 15 true
+
+horizontal links
+
+road ls1 lm1 15 true
+road lm1 lr1 15 true
+road lr1 lx1 15 true
+road ls2 lm2 15 true
+road lm2 lr2 15 true
+road lr2 lx2 15 true
+road ls3 lm3 15 true
+road lm3 lr3 15 true
+road lr3 lx3 15 true
+road ls4 lm4 15 true
+road lm4 lr4 15 true
+road lr4 lx4 15 true
+
+--- CONNECTIONS TO EXISTING MAP ---
+
+road west_road4 ls1 15 true
+road gate1_junction lm1 15 true
+road lx4 se4 15 true
+road lx3 se3 15 true
+road lx2 se2 15 true
+road lx1 se1 15 true
+road lx2 se6 15 true

@@ -22,3 +22,12 @@ target_link_libraries(${PROJECT_NAME}_app
     SFML::Graphics
     SFML::Audio
 )
+
+# --- NEW COMMAND ADDED ---
+# This command automatically copies your map data file from the source directory
+# (src) to the binary/build directory (build/.../src) where the executable is.
+# This ensures the executable can always find it.
+file(COPY
+    "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+)
