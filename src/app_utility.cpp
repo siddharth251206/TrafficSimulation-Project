@@ -88,3 +88,55 @@ bool AssetHelper::try_load_texture(sf::Texture& tex, const std::string& relPath,
     }
     return false;
 }
+
+bool AssetHelper::try_load_font(sf::Font& font)
+{
+    namespace fs = std::filesystem;
+    // Candidate relative asset paths
+    const char* rels[] = {
+        "assets/fonts/Roboto-Regular.ttf",
+        "assets/fonts/DejaVuSans.ttf",
+        "assets/DejaVuSans.ttf",
+        "assets/Arial.ttf"
+    };
+    for (const char* r : rels)
+    {
+        if (auto full = resolve_asset_path(r))
+        {
+            if (font.openFromFile(*full))
+            {
+                std::cout << "Loaded font from: " << *full << "\n";
+                return true;
+            }
+        }
+    }
+
+    // OS-specific common locations
+    const char* absolutes[] = {
+#ifdef _WIN32
+        "C:/Windows/Fonts/arial.ttf",
+        "C:/Windows/Fonts/segoeui.ttf",
+#endif
+#ifdef __APPLE__
+        "/System/Library/Fonts/SFNS.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial.ttf",
+#endif
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+    };
+    for (const char* abs : absolutes)
+    {
+        fs::path p(abs);
+        if (fs::exists(p))
+        {
+            if (font.openFromFile(p.string()))
+            {
+                std::cout << "Loaded system font from: " << p.string() << "\n";
+                return true;
+            }
+        }
+    }
+    std::cerr << "Failed to load any fallback font. UI text will be disabled.\n";
+    return false;
+}

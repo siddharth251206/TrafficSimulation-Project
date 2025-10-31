@@ -44,7 +44,10 @@ public:
     // Try to load a texture from a relative asset path, resolving across common bases.
     // Returns true on success and logs what happened.
     static bool try_load_texture(sf::Texture& tex, const std::string& relPath, const char* label);
-    
+
+    // Try to load any available font: first from assets, then common system locations.
+    // Returns true if a font was loaded into 'font'.
+    static bool try_load_font(sf::Font& font);
 };
 
 inline bool point_in_circle(const sf::Vector2f& center, float radius, const sf::Vector2f& point)

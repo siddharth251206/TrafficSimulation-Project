@@ -235,13 +235,20 @@ int main()
     // --------------------------------------------------------------
     // FONT / TEXT (safe fallback)
     // --------------------------------------------------------------
-    sf::Font font;
-    const bool font_ok = font.openFromFile("assets/fonts/Roboto-Regular.ttf");
+    sf::Font primary_font;
+    const bool font_ok = primary_font.openFromFile("assets/fonts/Roboto-Regular.ttf");
 
-    sf::Text ui_text(font, "", 18);
-    if (font_ok) {
-        ui_text.setFillColor(sf::Color::White);
-        ui_text.setPosition(sf::Vector2f(10.f, 10.f));
+    const sf::Font* ui_font = nullptr;
+    static sf::Font fallback_font;
+    if (font_ok) ui_font = &primary_font;
+    else if (AssetHelper::try_load_font(fallback_font)) ui_font = &fallback_font;
+
+    std::unique_ptr<sf::Text> ui_text;
+    if (ui_font)
+    {
+        ui_text = std::make_unique<sf::Text>(*ui_font, "", 18);
+        ui_text->setFillColor(sf::Color::White);
+        ui_text->setPosition(sf::Vector2f(10.f, 10.f));
     }
 
     // --------------------------------------------------------------
@@ -373,7 +380,8 @@ int main()
 
         // ---- UI TEXT ----
         // ---- UI TEXT (IMPROVED) ----
-    if (font_ok) {
+    if (ui_text)
+    {
         std::string txt;
         
         // Base instruction
@@ -399,13 +407,13 @@ int main()
             txt += " | All cars spawned!";
         }
 
-        ui_text.setString(txt);
-        ui_text.setCharacterSize(18);
-        ui_text.setFillColor(sf::Color::White);
-        // ui_text.setPosition(10.f, 10.f); // Top-left corner
+        ui_text->setString(txt);
+        ui_text->setCharacterSize(18);
+        ui_text->setFillColor(sf::Color::White);
+        ui_text->setPosition(sf::Vector2f(10.f, 10.f)); // Top-left corner
 
         window.setView(window.getDefaultView());
-        window.draw(ui_text);
+        window.draw(*ui_text);
         window.setView(camera_controller.get_camera());
     }
 
