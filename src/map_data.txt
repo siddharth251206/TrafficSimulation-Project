@@ -1,11 +1,4 @@
 This file defines the traffic map.
-
-Format:
-
-junction <name> <x_coord> <y_coord>
-
-road <junction_name_1> <junction_name_2> <width> <need_divider_bool (true/false)>
-
 --- MAIN CAMPUS GRID EXPANDED ---
 
 junction gajjar_junction 700 100
