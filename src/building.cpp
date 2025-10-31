@@ -16,7 +16,7 @@ Building::Building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Col
 Building::Building(const sf::Vector2f& center, const sf::Vector2f& size, const std::string& texturePath)
 {
     // Try to load texture; if it fails, build a rectangle fallback
-    m_texture.emplace();
+    m_texture = std::make_shared<sf::Texture>();
     if (AssetHelper::try_load_texture(*m_texture, texturePath, "building"))
     {
         sf::Sprite sprite(*m_texture);
@@ -33,7 +33,7 @@ Building::Building(const sf::Vector2f& center, const sf::Vector2f& size, const s
     m_texture.reset();
 
     // Generate a procedural building sprite (window grid)
-    m_texture.emplace();
+    m_texture = std::make_shared<sf::Texture>();
     const unsigned texW = 128, texH = 128;
     sf::RenderTexture rt({ texW, texH });
     // Base wall color
@@ -64,7 +64,7 @@ Building::Building(const sf::Vector2f& center, const sf::Vector2f& size, const s
         std::filesystem::create_directories(out.parent_path());
         img.saveToFile(out);
     } catch (...) {}
-    if (m_texture->loadFromImage(img))
+    if (m_texture && m_texture->loadFromImage(img))
     {
         sf::Sprite sprite(*m_texture);
         const sf::Vector2u texSize = m_texture->getSize();

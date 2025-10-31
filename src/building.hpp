@@ -3,6 +3,7 @@
 #include <optional>
 #include <variant>
 #include <string>
+#include <memory>
 
 class Building
 {
@@ -16,7 +17,7 @@ public:
     void draw(sf::RenderWindow& window) const;
 
 private:
-    // If sprite is used, keep the texture alive inside the object
-    std::optional<sf::Texture> m_texture;
+    // Keep texture on heap so sprite references survive moves
+    std::shared_ptr<sf::Texture> m_texture;
     std::variant<sf::RectangleShape, sf::Sprite> m_visual;
 };
