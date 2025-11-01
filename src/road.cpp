@@ -21,6 +21,7 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
     m_model[0] = sf::Vertex{ m_start };
     m_model[1] = sf::Vertex{ m_end };
 }
+
 void Road::add(std::unique_ptr<Car> car) { m_cars.push_back(std::move(car)); }
 
 std::weak_ptr<Junction> Road::getEndJunction() const { return m_junctions.second; }
@@ -29,6 +30,7 @@ void Road::setStartJunction(const std::shared_ptr<Junction>& junction)
 {
     m_junctions.first = junction;
 }
+
 void Road::setEndJunction(const std::shared_ptr<Junction>& junction)
 {
     m_junctions.second = junction;
@@ -53,11 +55,11 @@ void Road::update(sf::Time elapsed)
         Obstacle obstacle;
 
         // Step 1: Determine the immediate obstacle.
-        if (i > 0)// Is there a car in front?
+        if (i > 0) // Is there a car in front?
         {
             obstacle = { m_cars[i - 1]->m_relative_distance, m_cars[i - 1]->m_speed };
         }
-        else// It is the first car
+        else // It is the first car
         {
             // Check for an obstacle at the end of the road (light or blocked junction).
             if (auto end_junction = getEndJunction().lock())
@@ -66,7 +68,6 @@ void Road::update(sf::Time elapsed)
                 // A red/yellow light or a backed-up junction is a "wall" at the end of the road.
                 if (light_state != TrafficLight::State::Green || end_junction->is_blocked())
                 {
-                    // The car in front is the primary obstacle.
                     obstacle = { m_length, 0.f };
                 }
             }
@@ -102,10 +103,7 @@ void Road::update(sf::Time elapsed)
         float calculated_acc =
             current_car->m_max_acceleration * (1.0f - free_road_term - interaction_term);
 
-        // this nugget of fuck is why the car's accel isn't negativer than max break force
-        // so if this clusterfucking function says, "hi m_acceleration = -100000!"
-        // it says, "fuckity nope, m_acceleration is -m_brake_deceleration"
-        // and stops cars from disappearing. i do not know why. i am sorry
+        // Prevent unrealistic braking values
         current_car->m_acceleration = std::max(-current_car->m_brake_deceleration, calculated_acc);
     }
 
@@ -134,6 +132,19 @@ void Road::update(sf::Time elapsed)
             return false;
         }
     );
+
+    // [ADDED - remove cars that reached their destination junction]
+    // This ensures cars selected by the user despawn once they reach their chosen destination.
+    std::erase_if(
+        m_cars,
+        [](const std::unique_ptr<Car>& car)
+        {
+            if (car->should_remove()) {
+                std::cout << "[Despawn] Car reached its destination and was removed.\n";
+                return true;
+            }
+            return false;
+        });
 }
 
 void Road::draw(sf::RenderWindow& window) const

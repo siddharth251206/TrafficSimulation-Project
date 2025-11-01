@@ -10,7 +10,7 @@
 int main()
 {
     unsigned int width = 1200, height = 800;
-    sf::RenderWindow window(sf::VideoMode({width, height}), "Traffic Simulator – Source/Dest UI");
+    sf::RenderWindow window(sf::VideoMode({width, height}), "Traffic Simulator - Source/Dest UI");
     window.setFramerateLimit(60);
 
     TrafficMap traffic_map;
