@@ -15,7 +15,7 @@
     #include <limits.h>
 #endif
 
-std::string getExecutableDir() {
+std::string get_executable_dir() {
     char buffer[4096];
     std::string exePath;
 

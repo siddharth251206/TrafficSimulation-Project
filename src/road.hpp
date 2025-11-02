@@ -31,10 +31,11 @@ public:
     }
 
     bool is_empty() const { return m_cars.empty(); }
-    bool operator==(const Road &other) const;
+    size_t get_car_count() const { return m_cars.size(); }
+    bool operator==(const Road& other) const;
 
     static constexpr float SAFE_GAP = 60.f;
-    float get_travel_time() const; //Calculates road cost based on traffic
+    float get_travel_time() const;// Calculates road cost based on traffic
 
 private:
     sf::Vector2f m_start, m_end, m_direction;

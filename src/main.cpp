@@ -1,8 +1,7 @@
 #include "camera.hpp"
-#include "traffic_light.hpp"
-#include "traffic_map.hpp"
 #include "pathfinder.hpp"
 #include "file_parse.hpp"
+#include "traffic_map.hpp"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
@@ -24,7 +23,7 @@ int main()
     // have been moved to "map_data.txt" and are loaded by this function.
     try
     {
-        load_map_from_file(traffic_map, getExecutableDir() + "/map_data.txt");
+        load_map_from_file(traffic_map, get_executable_dir() + "/map_data.txt");
         // load_map_from_file(traffic_map, "map_data.txt");
     }
     catch (const std::exception& e)
@@ -45,8 +44,7 @@ int main()
         loaded = AssetHelper::try_load_texture(car_texture, "assets/car.png", "simple car");
 
     sf::Clock spawn_timer;
-    int max_cars = 25;// larger map → more cars
-    int spawned_count = 0;
+    size_t max_cars = 150;
 
     CameraController camera_controller(static_cast<float>(width), static_cast<float>(height));
 
@@ -77,31 +75,40 @@ int main()
         camera_controller.clamp_camera();
 
         // Spawn cars
-        if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 0.5f)
+        if (traffic_map.get_car_count() < max_cars
+            && spawn_timer.getElapsedTime().asSeconds() > 0.1f)
         {
-            auto start_junction = traffic_map.get_junction({200, 700});
-            auto end_junction = traffic_map.get_junction({700, 100}); // e.g., Department junction
-
-            PathFinder pathfinder;
-            if (start_junction && end_junction)
+            if (auto start_road = traffic_map.get_random_road(),
+                end_road = traffic_map.get_random_road();
+                start_road && end_road)
             {
-                // 4. Calculate the optimal path using the Pathfinder
-                std::deque<std::weak_ptr<Road>> path = pathfinder.find_path(start_junction, end_junction);
+                float start_distance = RNG::instance().getFloat(0.f, start_road->getLength());
+                float end_distance = RNG::instance().getFloat(0.f, end_road->getLength());
 
-                // 5. Only spawn the car if a valid path was found
-                if (!path.empty())
+                if (start_road == end_road)
                 {
-                    // Get the very first road segment from the calculated path
-                    if (auto first_road = path.front().lock())
+                    if (end_distance > start_distance)
                     {
-                        // Create the car and assign it the path
-                        auto car = std::make_unique<Car>(first_road, loaded ? &car_texture : nullptr);
-                        car->set_path(path);
-
-                        // Add the car to the first road
-                        first_road->add(std::move(car));
-
-                        spawned_count++;
+                        auto car = std::make_unique<Car>(
+                            start_road, loaded ? &car_texture : nullptr, start_distance
+                        );
+                        car->set_destination({}, end_road, end_distance);
+                        start_road->add(std::move(car));
+                    }
+                }
+                else if (auto start_junction = start_road->getEndJunction().lock(),
+                         end_junction = end_road->getEndJunction().lock();
+                         start_junction && end_junction)
+                {
+                    PathFinder pathfinder;
+                    if (auto path = pathfinder.find_path(start_junction, end_junction);
+                        !path.empty() && path.back().lock() == end_road)
+                    {
+                        auto car = std::make_unique<Car>(
+                            start_road, loaded ? &car_texture : nullptr, start_distance
+                        );
+                        car->set_destination(path, end_road, end_distance);
+                        start_road->add(std::move(car));
                     }
                 }
             }
