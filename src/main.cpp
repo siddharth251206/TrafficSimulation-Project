@@ -79,9 +79,10 @@ int main()
         // Spawn cars
         if (spawned_count < max_cars && spawn_timer.getElapsedTime().asSeconds() > 0.5f)
         {
-            auto start_junction = traffic_map.get_junction(gate1_junction);
-            auto end_junction = traffic_map.get_junction(gajjar_junction); // e.g., Department junction
+            auto start_junction = traffic_map.get_junction({200, 700});
+            auto end_junction = traffic_map.get_junction({700, 100}); // e.g., Department junction
 
+            PathFinder pathfinder;
             if (start_junction && end_junction)
             {
                 // 4. Calculate the optimal path using the Pathfinder

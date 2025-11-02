@@ -8,11 +8,8 @@ add_executable(${PROJECT_NAME}_app
         double_road.cpp
         traffic_light.cpp
         camera.cpp
-<<<<<<< HEAD
         pathfinder.cpp
-=======
         file_parse.cpp
->>>>>>> feat/map-from-file
 )
 
 target_link_libraries(${PROJECT_NAME}_app
