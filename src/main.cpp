@@ -121,7 +121,7 @@ int main()
     // have been moved to "map_data.txt" and are loaded by this function.
     try
     {
-        load_map_from_file(traffic_map, "map_data.txt");
+        load_map_from_file(traffic_map, "../../../src/map_data.txt");
     }
     catch (const std::exception& e)
     {
