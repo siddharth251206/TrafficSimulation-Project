@@ -1,6 +1,7 @@
 #include "car.hpp"
 #include "app_utility.hpp"
 #include "road.hpp"
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <variant>
@@ -48,43 +49,69 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float star
 
 void Car::update(sf::Time elapsed)
 {
-    if (!m_is_finished && m_final_road.lock() && m_road.lock() == m_final_road.lock()
-        && m_relative_distance >= m_destination_distance)
+    switch (m_state)
     {
-        m_is_finished = true;
-    }
-
-    const float dt = elapsed.asSeconds();
-
-    // Kinematics update
-    m_relative_distance += (m_speed + 0.5f * m_acceleration * dt) * dt;
-    m_speed += m_acceleration * dt;
-    if (m_speed < 0.f)
-        m_speed = 0.f;
-
-    if (auto road_ptr = m_road.lock())
-    {
-        // Clamp to road length and notify junction if we reached the end
-        const float road_len = road_ptr->getLength();
-        if (m_relative_distance >= road_len)
+    case CarState::Spawning:
+        m_fade_timer -= elapsed;
+        if (m_fade_timer <= sf::Time::Zero)
         {
-            m_relative_distance = road_len;
-        }
-
-        // Update position and orientation
-        m_position = road_ptr->get_point_at_distance(m_relative_distance);
-
-        if (sf::Sprite* m_sprite = std::get_if<sf::Sprite>(&m_visual))
-        {
-            m_sprite->setPosition(m_position);
-            const sf::Vector2f direction = road_ptr->get_direction();
-            const float angle_rad = std::atan2(direction.y, direction.x);
-            m_sprite->setRotation(sf::radians(angle_rad));
+            m_state = CarState::Driving;
+            set_alpha(255);
         }
         else
         {
-            sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
-            m_model.setPosition(m_position);
+            const float alpha_ratio = 1.f - (m_fade_timer / FADE_IN_DURATION);
+            set_alpha(static_cast<std::uint8_t>(alpha_ratio * 255));
+        }
+        break;
+    case CarState::Driving:
+        if (!m_is_finished && m_final_road.lock() && m_road.lock() == m_final_road.lock()
+            && m_relative_distance >= m_destination_distance)
+        {
+            m_is_finished = true;
+            m_state = CarState::Despawning;
+            m_fade_timer = FADE_OUT_DURATION;
+        }
+        break;
+    case CarState::Despawning:
+        // TODO: Despawning logic here
+        break;
+    }
+
+    if (m_state != CarState::Despawning)
+    {
+        const float dt = elapsed.asSeconds();
+
+        // Kinematics update
+        m_relative_distance += (m_speed + 0.5f * m_acceleration * dt) * dt;
+        m_speed += m_acceleration * dt;
+        if (m_speed < 0.f)
+            m_speed = 0.f;
+
+        if (auto road_ptr = m_road.lock())
+        {
+            // Clamp to road length and notify junction if we reached the end
+            const float road_len = road_ptr->getLength();
+            if (m_relative_distance >= road_len)
+            {
+                m_relative_distance = road_len;
+            }
+
+            // Update position and orientation
+            m_position = road_ptr->get_point_at_distance(m_relative_distance);
+
+            if (sf::Sprite* m_sprite = std::get_if<sf::Sprite>(&m_visual))
+            {
+                m_sprite->setPosition(m_position);
+                const sf::Vector2f direction = road_ptr->get_direction();
+                const float angle_rad = std::atan2(direction.y, direction.x);
+                m_sprite->setRotation(sf::degrees(angle_rad * 180.f / 3.14159265f));
+            }
+            else
+            {
+                sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
+                m_model.setPosition(m_position);
+            }
         }
     }
 }
