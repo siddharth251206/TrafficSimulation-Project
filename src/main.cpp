@@ -12,6 +12,8 @@
 #include <sstream>   // For string parsing
 #include <map>       // To store junction names and coordinates
 #include <stdexcept> // For error handling
+#include <filesystem>
+
 
 /**
  * @brief Loads map data from a text file and populates the TrafficMap.
@@ -27,6 +29,11 @@
  * @param traffic_map The TrafficMap object to populate.
  * @param filename The path to the map data file.
  */
+
+std::string get_map_path() {
+    std::filesystem::path exe_dir = std::filesystem::current_path();
+        return (exe_dir / "../../../src/map_data.txt").string();
+}
 void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
 {
     std::map<std::string, sf::Vector2f> junctions;
@@ -121,7 +128,7 @@ int main()
     // have been moved to "map_data.txt" and are loaded by this function.
     try
     {
-        load_map_from_file(traffic_map, "../../../src/map_data.txt");
+        load_map_from_file(traffic_map, get_map_path());
     }
     catch (const std::exception& e)
     {
