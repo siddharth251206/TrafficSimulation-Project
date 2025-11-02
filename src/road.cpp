@@ -123,23 +123,26 @@ void Road::update(sf::Time elapsed)
         m_cars,
         [&](std::unique_ptr<Car>& car)
         {
-            // Despawn cars that have reached their destination
+            // Remove cars that are transparent and have reached their destination
             // This must come before any junction transfer logic
-            if (car->is_finished())
+            if (car->is_ready_for_removal())
                 return true;
 
-            // Transfer cars that have reached the end of the road
+            // Keep cars that are still driving on road
             if (car->m_relative_distance < m_length)
                 return false;
             car->m_relative_distance = m_length;
 
-            if (const std::shared_ptr<Junction> end_junction = getEndJunction().lock())
+            if (!car->is_finished())
             {
-                end_junction->accept_car(std::move(car));
+                if (const std::shared_ptr<Junction> end_junction = getEndJunction().lock())
+                    end_junction->accept_car(std::move(car));
+
+                // Whether transferred or at a dead-end, the car is removed
                 return true;
             }
-            // Car is stuck at the end of a road with no junction
-            car.reset();
+
+            // Keep cars that have reached (we're waiting until they fade out)
             return false;
         }
     );
