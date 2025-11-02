@@ -13,6 +13,17 @@ class Car
     friend class Junction;
 
 public:
+    // Car's internal lifecycle state machine
+    enum class CarState
+    {
+        Spawning,
+        Driving,
+        Despawning
+    };
+
+    static constexpr sf::Time FADE_IN_DURATION = sf::seconds(2.0f);
+    static constexpr sf::Time FADE_OUT_DURATION = sf::seconds(0.5f);
+
     // Supports optional sprite texture; falls back to a rectangle if no texture provided
     explicit Car(
         const std::weak_ptr<Road>& road,
@@ -28,9 +39,15 @@ public:
     );
     std::weak_ptr<Road> get_next_road_in_path();
     void advance_path();
+    // True if car has reached its destination
     [[nodiscard]] bool is_finished() const;
+    // True if car is finished and is also completely faded-out
+    [[nodiscard]] bool is_ready_for_removal() const;
 
 private:
+    // Yes, this sets the alpha channel (transparency) of car
+    void set_alpha(std::uint8_t alpha);
+
     // Road reference and kinematics
     std::weak_ptr<Road> m_road;
     float m_relative_distance = 0.f;
@@ -55,4 +72,8 @@ private:
     float m_destination_distance;
     // Flag indicating car has reached its final destination
     bool m_is_finished = false;
+
+    // State management
+    CarState m_state;
+    sf::Time m_fade_timer;
 };

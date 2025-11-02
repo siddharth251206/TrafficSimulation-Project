@@ -3,9 +3,11 @@
 #include "road.hpp"
 #include <cmath>
 #include <cstdint>
+#include <variant>
 
 Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float start_distance)
-    : m_road(road), m_relative_distance(start_distance)
+    : m_road(road), m_relative_distance(start_distance), m_state(CarState::Spawning),
+      m_fade_timer(FADE_IN_DURATION)
 {
     if (auto road_ptr = m_road.lock())
         m_position = road_ptr->get_point_at_distance(m_relative_distance);
@@ -40,6 +42,8 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float star
     m_max_acceleration = RNG::instance().getFloat(40.f, 60.f);
     m_brake_deceleration = RNG::instance().getFloat(80.f, 100.f);
     m_time_headway = RNG::instance().getFloat(1.1f, 2.0f);
+
+    set_alpha(0);
 }
 
 void Car::update(sf::Time elapsed)
@@ -120,3 +124,30 @@ void Car::advance_path()
 }
 
 bool Car::is_finished() const { return m_is_finished; }
+
+// TODO: logic for this
+bool Car::is_ready_for_removal() const { return false; }
+
+void Car::set_alpha(const std::uint8_t alpha)
+{
+    // sf::Sprite and sf::Rectangle are different types with different methods for color stuff
+    // Unpacks variant (via std::visit) -> determines type (compile-time) -> calls correct method
+    std::visit(
+        [=]<typename ShapeType>(ShapeType& shape)
+        {
+            if constexpr (std::is_same_v<ShapeType, sf::Sprite>)
+            {
+                sf::Color color = shape.getColor();
+                color.a = alpha;
+                shape.setColor(color);
+            }
+            else if constexpr (std::is_same_v<ShapeType, sf::RectangleShape>)
+            {
+                sf::Color color = shape.getFillColor();
+                color.a = alpha;
+                shape.setFillColor(color);
+            }
+        },
+        m_visual
+    );
+}
