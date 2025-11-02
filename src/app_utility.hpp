@@ -7,6 +7,8 @@
 
 bool point_in_circle(sf::Vector2f centre, float radius, sf::Vector2f point);
 
+std::string getExecutableDir();
+
 // RNG singleton
 class RNG
 {
