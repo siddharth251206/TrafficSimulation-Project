@@ -74,7 +74,18 @@ void Car::update(sf::Time elapsed)
         }
         break;
     case CarState::Despawning:
-        // TODO: Despawning logic here
+        m_speed = 0.f;
+        m_acceleration = 0.f;
+        m_fade_timer -= elapsed;
+        if (m_fade_timer <= sf::Time::Zero)
+        {
+            set_alpha(0);
+        }
+        else
+        {
+            const float alpha_ratio = m_fade_timer / FADE_OUT_DURATION;
+            set_alpha(static_cast<std::uint8_t>(alpha_ratio * 255));
+        }
         break;
     }
 
@@ -152,13 +163,13 @@ void Car::advance_path()
 
 bool Car::is_finished() const { return m_is_finished; }
 
-// TODO: logic for this
-bool Car::is_ready_for_removal() const { return false; }
+bool Car::is_ready_for_removal() const
+{
+    return m_state == CarState::Despawning && m_fade_timer <= sf::Time::Zero;
+}
 
 void Car::set_alpha(const std::uint8_t alpha)
 {
-    // sf::Sprite and sf::Rectangle are different types with different methods for color stuff
-    // Unpacks variant (via std::visit) -> determines type (compile-time) -> calls correct method
     std::visit(
         [=]<typename ShapeType>(ShapeType& shape)
         {
