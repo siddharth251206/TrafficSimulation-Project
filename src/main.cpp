@@ -63,12 +63,6 @@ int main()
     traffic_map.add_double_road(department_junction, quarters_junction, 24.f);
     traffic_map.add_double_road(department_junction, admin_junction, 24.f);
 
-    // Add some buildings in open areas (try sprite textures; fallback to rectangles if not found)
-    traffic_map.add_building({ 300.f, 220.f }, { 120.f, 80.f }, std::string("assets/building.png"));
-    traffic_map.add_building({ 500.f, 220.f }, { 140.f, 90.f }, std::string("assets/building2.png"));
-    traffic_map.add_building({ 850.f, 200.f }, { 120.f, 120.f }, std::string("assets/building_office.png"));
-    traffic_map.add_building({ 320.f, 520.f }, { 100.f, 140.f }, std::string("assets/building_tall.png"));
-    traffic_map.add_building({ 820.f, 520.f }, { 160.f, 120.f }, std::string("assets/building_wide.png"));
 
     // Load car texture
     sf::Texture car_texture;

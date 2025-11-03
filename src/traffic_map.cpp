@@ -41,16 +41,6 @@ void TrafficMap::add_double_road(
     m_double_roads.push_back(new_double_road);
 }
 
-void TrafficMap::add_building(const sf::Vector2f& center, const sf::Vector2f& size, sf::Color color)
-{
-    m_buildings.emplace_back(center, size, color);
-}
-
-void TrafficMap::add_building(const sf::Vector2f& center, const sf::Vector2f& size, const std::string& texturePath)
-{
-    m_buildings.emplace_back(center, size, texturePath);
-}
-
 std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f& position)
 {
     sf::Vector2i grid = { static_cast<int>(std::floor(position.x / 40.f)),
@@ -111,10 +101,6 @@ void TrafficMap::update(sf::Time elapsed)
 
 void TrafficMap::draw(sf::RenderWindow& window) const
 {
-    // Draw buildings first (background)
-    for (const auto& b : m_buildings)
-        b.draw(window);
-
     // Draw roads and cars
     for (const auto& road : m_double_roads)
         road->draw(window);
@@ -147,6 +133,5 @@ void TrafficMap::clear()
 {
     m_double_roads.clear();
     m_single_roads.clear();
-    m_buildings.clear();
     m_junctions.clear();
 }
