@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdint>
 
-Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float start_distance)
+Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float start_distance, const sf::Color& color)
     : m_road(road), m_relative_distance(start_distance)
 {
     if (auto road_ptr = m_road.lock())
@@ -19,20 +19,15 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float star
         const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
         m_sprite.setOrigin(originPoint);
         m_sprite.setScale({ 0.5f, 0.5f });
+        m_sprite.setColor(color); // ✅ tint sprite with passed color
     }
     else
     {
         // Fallback rectangle styling (when no texture is provided)
         m_visual.emplace<sf::RectangleShape>(sf::RectangleShape({ CAR_LENGTH, CAR_LENGTH }));
         sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
-        m_model.setOrigin({ CAR_LENGTH / 2, CAR_LENGTH / 2 });
-        m_model.setFillColor(
-            sf::Color(
-                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
-                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
-                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255))
-            )
-        );
+        m_model.setOrigin({ CAR_LENGTH / 2.f, CAR_LENGTH / 2.f });
+        m_model.setFillColor(color); // ✅ use passed color directly
     }
 
     // --- IDM property randomization ---
@@ -50,6 +45,10 @@ void Car::update(sf::Time elapsed)
         m_is_finished = true;
     }
 
+    // ✅ Stop updating once car reached destination
+    if (m_is_finished)
+        return;
+
     const float dt = elapsed.asSeconds();
 
     // Kinematics update
@@ -60,7 +59,7 @@ void Car::update(sf::Time elapsed)
 
     if (auto road_ptr = m_road.lock())
     {
-        // Clamp to road length and notify junction if we reached the end
+        // Clamp to road length
         const float road_len = road_ptr->getLength();
         if (m_relative_distance >= road_len)
         {
@@ -75,7 +74,7 @@ void Car::update(sf::Time elapsed)
             m_sprite->setPosition(m_position);
             const sf::Vector2f direction = road_ptr->get_direction();
             const float angle_rad = std::atan2(direction.y, direction.x);
-            m_sprite->setRotation(sf::radians(angle_rad));
+            m_sprite->setRotation(sf::degrees(angle_rad * 180.f / 3.14159265f));
         }
         else
         {
@@ -106,7 +105,6 @@ void Car::set_destination(
 
 std::weak_ptr<Road> Car::get_next_road_in_path()
 {
-    // Logic to get the first road from m_path will go here.
     if (m_path.empty())
         return {};
     return m_path.front();
@@ -114,9 +112,11 @@ std::weak_ptr<Road> Car::get_next_road_in_path()
 
 void Car::advance_path()
 {
-    // Logic to remove the first road from m_path will go here.
     if (!m_path.empty())
         m_path.pop_front();
 }
 
-bool Car::is_finished() const { return m_is_finished; }
+bool Car::is_finished() const
+{
+    return m_is_finished;
+}

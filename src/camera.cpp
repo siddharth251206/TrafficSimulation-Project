@@ -78,6 +78,13 @@ void CameraController::handle_mouse_drag(
         m_lastMousePos = newPos;
     }
 }
+void CameraController::handle_resize(unsigned int width, unsigned int height)
+{
+    m_camera.setSize(sf::Vector2f{
+        static_cast<float>(width) * m_zoomLevel,
+        static_cast<float>(height) * m_zoomLevel
+    });
+}
 
 void CameraController::handle_kb_panning(float deltaTime)
 {
