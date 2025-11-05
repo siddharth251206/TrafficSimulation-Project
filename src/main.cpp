@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "environment_manager.hpp"
 #include "pathfinder.hpp"
 #include "file_parse.hpp"
 #include "traffic_map.hpp"
@@ -18,6 +19,9 @@ int main()
     // Initialize traffic map
     TrafficMap traffic_map;
 
+    // Initialize environment manager
+    EnvironmentManager environment_manager;
+
     // --- LOAD MAP FROM FILE ---
     // All the junction definitions and add_double_road calls
     // have been moved to "map_data.txt" and are loaded by this function.
@@ -32,6 +36,9 @@ int main()
         return -1; // Exit if map loading fails
     }
     // -----------------------------------------------------------------------
+
+    // Initialize urban environment
+    environment_manager.initialize_from_traffic_map(traffic_map);
 
     // ----------- VEHICLES & CAMERA -------------
     sf::Texture car_texture;
@@ -118,6 +125,9 @@ int main()
         traffic_map.update(elapsed);
         window.setView(camera_controller.get_camera());
         window.clear(sf::Color(20, 20, 40));
+        
+        // Draw environment first, then roads, then cars
+        environment_manager.draw_environment(window);
         traffic_map.draw(window);
         window.display();
     }

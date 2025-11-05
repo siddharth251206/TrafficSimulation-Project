@@ -8,6 +8,9 @@ add_executable(${PROJECT_NAME}_app
         double_road.cpp
         traffic_light.cpp
         camera.cpp
+        building.cpp
+        urban_element.cpp
+        environment_manager.cpp
         pathfinder.cpp
         file_parse.cpp
 )
@@ -33,3 +36,18 @@ file(COPY
     "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
 )
+
+# Ensure runtime data is beside the executable (handles multi-config generators)
+add_custom_command(TARGET ${PROJECT_NAME}_app POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
+          "$<TARGET_FILE_DIR:${PROJECT_NAME}_app>/map_data.txt"
+)
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
+  add_custom_command(TARGET ${PROJECT_NAME}_app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}_app>/assets"
+  )
+endif()

@@ -21,7 +21,7 @@ if(CMAKE_EXPORT_COMPILE_COMMANDS)
     # On Windows, creating symlinks commonly requires admin privileges (especially under OneDrive).
     # Use a regular file copy instead to avoid permission failures.
     add_custom_target(
-      symlink_compile_commands ALL
+      symlink_compile_commands
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
               ${CMAKE_BINARY_DIR}/compile_commands.json
               ${CMAKE_SOURCE_DIR}/compile_commands.json
@@ -30,7 +30,7 @@ if(CMAKE_EXPORT_COMPILE_COMMANDS)
     )
   else()
     add_custom_target(
-      symlink_compile_commands ALL
+      symlink_compile_commands
       COMMAND ${CMAKE_COMMAND} -E create_symlink
               ${CMAKE_BINARY_DIR}/compile_commands.json
               ${CMAKE_SOURCE_DIR}/compile_commands.json
