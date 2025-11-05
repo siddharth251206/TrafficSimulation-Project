@@ -256,9 +256,10 @@ void UXController::spawn_cars()
 
 void UXController::draw_left_buttons()
 {
+    // Gradient-like side panel with more vibrant color
     sf::RectangleShape side_panel({220.f, static_cast<float>(window.getSize().y)});
     side_panel.setPosition({0.f, 0.f});
-    side_panel.setFillColor(sf::Color(10, 15, 30, 220));
+    side_panel.setFillColor(sf::Color(15, 25, 45, 235));
     window.draw(side_panel);
 
     for (size_t i = 0; i < left_buttons.size(); ++i)
@@ -271,8 +272,16 @@ void UXController::draw_left_buttons()
         int car_index = static_cast<int>(i / 2);
         bool is_source_button = (i % 2 == 0);
 
-        sf::Color fill = active ? sf::Color(60, 120, 60, 200) : sf::Color(40, 40, 60, 180);
-        sf::Color outline = active ? sf::Color(120, 220, 120) : sf::Color(120, 120, 120);
+        // More colorful button states with car colors
+        sf::Color fill, outline;
+        if (active) {
+            fill = sf::Color(70, 180, 100, 220);
+            outline = sf::Color(120, 255, 150);
+        } else {
+            fill = sf::Color(45, 55, 85, 200);
+            outline = sf::Color(80, 120, 180);
+        }
+        
         std::string text = btn.label;
 
         if (car_index >= 0 && car_index < 3) {
@@ -312,41 +321,70 @@ void UXController::draw_left_buttons()
 void UXController::draw_top_status_bar()
 {
     float w = static_cast<float>(window.getSize().x);
-    sf::RectangleShape bar({w, 34.f});
+    sf::RectangleShape bar({w, 44.f});
     bar.setPosition({0.f, 0.f});
-    bar.setFillColor(sf::Color(25, 35, 45, 220));
+    bar.setFillColor(sf::Color(20, 30, 50, 240));
     window.draw(bar);
 
     if (!ui_font) return;
 
-    float x = 12.f;
-    float y = 8.f;
-
-    sf::Text title(*ui_font, "User Cars:", 12);
-    title.setFillColor(sf::Color(180, 200, 220));
-    title.setPosition({x, y});
-    window.draw(title);
-    x += 80.f;
+    // Calculate total width needed for centered content
+    const float item_width = 180.f;
+    const float total_content_width = item_width * user_cars.size();
+    float start_x = (w - total_content_width) / 2.f;
+    float y = 12.f;
 
     for (size_t i = 0; i < user_cars.size(); ++i)
     {
-        std::string label = "Car " + std::to_string(i+1) + " Idle";
-        sf::Color dot_color = sf::Color(120, 120, 120);
-        if (user_cars[i].is_spawned) { label = "Car " + std::to_string(i+1) + " Active"; dot_color = user_cars[i].color; }
-        else if (user_cars[i].source_junction || user_cars[i].dest_junction) { label = "Car " + std::to_string(i+1) + " Ready"; dot_color = user_cars[i].color; }
+        float x = start_x + (i * item_width);
+        
+        std::string label = "Car " + std::to_string(i+1);
+        std::string status = "Idle";
+        sf::Color dot_color = sf::Color(100, 100, 100, 180);
+        sf::Color bg_color = sf::Color(30, 40, 60, 180);
+        
+        if (user_cars[i].is_spawned) { 
+            status = "Active"; 
+            dot_color = user_cars[i].color; 
+            bg_color = sf::Color(40, 60, 80, 200);
+        }
+        else if (user_cars[i].source_junction || user_cars[i].dest_junction) { 
+            status = "Ready"; 
+            dot_color = user_cars[i].color;
+            bg_color = sf::Color(35, 50, 70, 190);
+        }
 
-        sf::CircleShape dot(6.f);
-        dot.setOrigin({6.f, 6.f});
-        dot.setPosition({x + 6.f, y + 8.f});
+        // Background box for each car status
+        sf::RectangleShape status_box({165.f, 26.f});
+        status_box.setPosition({x, y - 2.f});
+        status_box.setFillColor(bg_color);
+        status_box.setOutlineThickness(1.5f);
+        status_box.setOutlineColor(sf::Color(60, 80, 120, 200));
+        window.draw(status_box);
+
+        // Color indicator dot
+        sf::CircleShape dot(7.f);
+        dot.setOrigin({7.f, 7.f});
+        dot.setPosition({x + 14.f, y + 11.f});
         dot.setFillColor(dot_color);
+        dot.setOutlineThickness(1.5f);
+        dot.setOutlineColor(sf::Color(255, 255, 255, 100));
         window.draw(dot);
 
-        sf::Text t(*ui_font, label, 11);
-        t.setFillColor(sf::Color::White);
-        t.setPosition({x + 18.f, y});
+        // Car label
+        sf::Text t(*ui_font, label, 12);
+        t.setFillColor(sf::Color(255, 255, 255));
+        t.setPosition({x + 28.f, y});
         window.draw(t);
 
-        x += 200.f;
+        // Status text
+        sf::Text status_text(*ui_font, "- " + status, 11);
+        sf::Color status_color = sf::Color(180, 180, 180);
+        if (status == "Active") status_color = sf::Color(100, 255, 150);
+        else if (status == "Ready") status_color = sf::Color(255, 220, 100);
+        status_text.setFillColor(status_color);
+        status_text.setPosition({x + 75.f, y + 1.f});
+        window.draw(status_text);
     }
 }
 
@@ -355,21 +393,23 @@ void UXController::draw_right_hud()
     float w = static_cast<float>(window.getSize().x);
     float h = static_cast<float>(window.getSize().y);
 
+    // More vibrant help box with gradient-like appearance
     sf::RectangleShape help_box({380.f, 170.f});
-    help_box.setPosition({w - 390.f, 10.f});
-    help_box.setFillColor(sf::Color(0, 0, 0, 180));
-    help_box.setOutlineThickness(2.f);
-    help_box.setOutlineColor(sf::Color(255, 215, 0));
+    help_box.setPosition({w - 390.f, 54.f});
+    help_box.setFillColor(sf::Color(10, 20, 40, 200));
+    help_box.setOutlineThickness(2.5f);
+    help_box.setOutlineColor(sf::Color(255, 200, 50));
     window.draw(help_box);
 
     if (ui_font) {
         float x = w - 380.f + 10.f;
-        float y = 18.f;
-        sf::Text title(*ui_font, "HOW TO CONTROL CARS:", 13);
-        title.setFillColor(sf::Color(255, 215, 0));
+        float y = 62.f;
+        sf::Text title(*ui_font, "HOW TO CONTROL CARS:", 14);
+        title.setFillColor(sf::Color(255, 220, 80));
+        title.setStyle(sf::Text::Bold);
         title.setPosition({x, y});
         window.draw(title);
-        y += 24.f;
+        y += 26.f;
         std::vector<std::string> lines = {
             "1. Click 'Set Car X Source' / 'Set Destination' button",
             "2. Click any junction on the map",
@@ -379,34 +419,38 @@ void UXController::draw_right_hud()
         };
         for (auto &l : lines) {
             sf::Text txt(*ui_font, l, 12);
-            txt.setFillColor(sf::Color::White);
+            txt.setFillColor(sf::Color(230, 230, 230));
             txt.setPosition({x, y});
             window.draw(txt);
             y += 16.f;
         }
     }
 
+    // More colorful legend box
     sf::RectangleShape legend({250.f, 110.f});
     legend.setPosition({w - 260.f, h/2.f});
-    legend.setFillColor(sf::Color(0, 0, 0, 160));
-    legend.setOutlineThickness(2.f);
-    legend.setOutlineColor(sf::Color(100, 200, 255));
+    legend.setFillColor(sf::Color(10, 20, 40, 190));
+    legend.setOutlineThickness(2.5f);
+    legend.setOutlineColor(sf::Color(80, 180, 255));
     window.draw(legend);
 
     if (ui_font) {
         float lx = w - 250.f + 10.f;
         float ly = h/2.f + 8.f;
-        sf::Text title(*ui_font, "CAR TYPES:", 13);
-        title.setFillColor(sf::Color(100,200,255));
+        sf::Text title(*ui_font, "CAR TYPES:", 14);
+        title.setFillColor(sf::Color(100, 200, 255));
+        title.setStyle(sf::Text::Bold);
         title.setPosition({lx, ly});
         window.draw(title);
-        ly += 20.f;
+        ly += 22.f;
 
         for (size_t i=0;i<user_cars.size();i++) {
-            sf::CircleShape dot(5.f);
-            dot.setOrigin({5.f,5.f});
-            dot.setPosition({lx + 8.f, ly + 7.f});
+            sf::CircleShape dot(6.f);
+            dot.setOrigin({6.f, 6.f});
+            dot.setPosition({lx + 10.f, ly + 8.f});
             dot.setFillColor(user_cars[i].color);
+            dot.setOutlineThickness(1.f);
+            dot.setOutlineColor(sf::Color(255, 255, 255, 150));
             window.draw(dot);
 
             std::string label = "Car " + std::to_string(i+1);
@@ -414,10 +458,10 @@ void UXController::draw_right_hud()
             else if (user_cars[i].is_spawned) label += " (Active)";
 
             sf::Text lt(*ui_font, label, 11);
-            lt.setFillColor(sf::Color(200,200,200));
-            lt.setPosition({lx + 22.f, ly});
+            lt.setFillColor(sf::Color(220, 220, 220));
+            lt.setPosition({lx + 24.f, ly});
             window.draw(lt);
-            ly += 16.f;
+            ly += 17.f;
         }
     }
 }
@@ -471,11 +515,11 @@ void UXController::render_ui()
 
     draw_highlight_rings();
 
-    // bottom-left instruction text
+    // bottom-left instruction text with better styling
     std::string txt = "Left Click: Select junctions via buttons | Right Click: Reset selections | ESC: Cancel";
     ui_text->setString(txt);
-    ui_text->setCharacterSize(13);
-    ui_text->setFillColor(sf::Color(220, 220, 220));
-    ui_text->setPosition({12.f, 40.f});
+    ui_text->setCharacterSize(12);
+    ui_text->setFillColor(sf::Color(200, 220, 240));
+    ui_text->setPosition({12.f, 52.f});
     window.draw(*ui_text);
 }
