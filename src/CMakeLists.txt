@@ -34,3 +34,6 @@ file(COPY
     "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
 )
+
+# Copy resources to build directory
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/fonts/Roboto-Regular.ttf" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

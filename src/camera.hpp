@@ -17,7 +17,7 @@ public:
     void handle_resize(unsigned int width, unsigned int height);
     void handle_mouse_drag(const sf::RenderWindow& window, const std::optional<sf::Event> event);
     void handle_kb_panning(float deltaTime);
-    void clamp_camera();
+    void clamp_camera(const sf::RenderWindow& window);
     const sf::View& get_camera() const { return m_camera; }
 
 private:

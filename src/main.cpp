@@ -13,7 +13,7 @@
 
 int main()
 {
-    unsigned int width = 1200;
+    unsigned int width = 1300;
     unsigned int height = 800;
 
     // --- 🖥️ Get desktop resolution dynamically (SFML 3 style) ---
@@ -64,10 +64,11 @@ int main()
 
     // --- Camera controller ---
     CameraController camera_controller(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
+    
 
     // --- 🆕 Font setup (graceful fallback) ---
     sf::Font font;
-    if (!font.openFromFile("/System/Library/Fonts/Supplemental/Arial.ttf"))
+    if (!font.openFromFile("C:/Windows/Fonts/arial.ttf"))
     {
         std::cerr << "[Warning] Default system font not found — using empty font.\n";
     }
@@ -102,7 +103,7 @@ int main()
 
         // --- Update camera & UI ---
         camera_controller.handle_kb_panning(deltaTime);
-        camera_controller.clamp_camera();
+        camera_controller.clamp_camera(window);
 
         ux.update(deltaTime);
         ux.spawn_cars();
@@ -149,11 +150,25 @@ int main()
         }
         // --- Draw everything ---
         traffic_map.update(elapsed);
-        window.setView(camera_controller.get_camera());
+
+        // window.setView(camera_controller.get_camera());
+        // window.clear(sf::Color(20, 20, 40));
+        // traffic_map.draw(window);
+        // ux.render_ui();
+        // window.display();
+
         window.clear(sf::Color(20, 20, 40));
+
+        // --- Draw world/map using camera ---
+        window.setView(camera_controller.get_camera());
         traffic_map.draw(window);
+
+        // --- Draw UI using default view ---
+        window.setView(window.getDefaultView());
         ux.render_ui();
+
         window.display();
+
     }
     return 0;
 }

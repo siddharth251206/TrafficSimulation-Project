@@ -3,11 +3,21 @@
 #include <algorithm>
 #include <optional>
 
+// ---- UI margins (must match the values used in ux.cpp) ----
+static constexpr float UI_LEFT   = 230.f;   // left panel + padding
+static constexpr float UI_RIGHT  = 390.f;   // right HUD + padding
+static constexpr float UI_TOP    =  44.f;   // top bar + padding
+
 CameraController::CameraController(float width, float height)
 {
     m_camera = sf::View(sf::FloatRect(sf::Vector2f{ 0.f, 0.f }, sf::Vector2f{ width, height }));
     m_camera.setCenter(sf::Vector2f(width / 2.f, height / 2.f));
     m_max_zoom = std::max((MAP_MAX_X - MAP_MIN_X) / width, (MAP_MAX_Y - MAP_MIN_Y) / height);
+
+    m_zoomLevel = 1.5f; // zoomed-out default view (adjust as desired)
+    m_camera.setSize(sf::Vector2f(
+                static_cast<float>(width) * m_zoomLevel, static_cast<float>(height) * m_zoomLevel
+            ));
 }
 
 void CameraController::handle_zoom(
@@ -102,28 +112,39 @@ void CameraController::handle_kb_panning(float deltaTime)
     m_camera.move(panDelta);
 }
 
-void CameraController::clamp_camera()
+void CameraController::clamp_camera(const sf::RenderWindow& window)
 {
-    // Clamp m_camera to map boundaries with safety checks
-    sf::Vector2f center = m_camera.getCenter();
-    sf::Vector2f halfSize = m_camera.getSize() / 2.f;
+    const sf::Vector2f viewSize = m_camera.getSize();
+    const sf::Vector2f halfSize = viewSize * 0.5f;
 
-    // Ensure clamping bounds are valid
-    float minX = MAP_MIN_X + halfSize.x;
-    float maxX = MAP_MAX_X - halfSize.x;
-    float minY = MAP_MIN_Y + halfSize.y;
-    float maxY = MAP_MAX_Y - halfSize.y;
+    // Map boundaries
+    const float mapLeft   = MAP_MIN_X;
+    const float mapRight  = MAP_MAX_X;
+    const float mapTop    = MAP_MIN_Y;
+    const float mapBottom = MAP_MAX_Y;
+
+    // Convert fixed pixel margins into world units *only once* relative to current zoom
+    float pixelsToWorldX = m_zoomLevel;
+    float pixelsToWorldY = m_zoomLevel;
+
+    const float leftMarginWorld  = UI_LEFT  * pixelsToWorldX;
+    const float rightMarginWorld = UI_RIGHT * pixelsToWorldX;
+    const float topMarginWorld   = UI_TOP   * pixelsToWorldY;
+
+    // Clamp camera to map bounds, respecting those margins
+    const float minX = mapLeft   + halfSize.x + leftMarginWorld;
+    const float maxX = mapRight  - halfSize.x - rightMarginWorld;
+    const float minY = mapTop    + halfSize.y + topMarginWorld;
+    const float maxY = mapBottom - halfSize.y;
+
+    sf::Vector2f center = m_camera.getCenter();
 
     // Prevent invalid clamp ranges
-    if (minX <= maxX)
-        center.x = std::clamp(center.x, minX, maxX);
-    else
-        center.x = (MAP_MIN_X + MAP_MAX_X) / 2.f;// Center if invalid
+    if (minX <= maxX) center.x = std::clamp(center.x, minX, maxX);
+    else center.x = (mapLeft + mapRight) * 0.5f;
 
-    if (minY <= maxY)
-        center.y = std::clamp(center.y, minY, maxY);
-    else
-        center.y = (MAP_MIN_Y + MAP_MAX_Y) / 2.f;// Center if invalid
+    if (minY <= maxY) center.y = std::clamp(center.y, minY, maxY);
+    else center.y = (mapTop + mapBottom) * 0.5f;
 
     m_camera.setCenter(center);
 }

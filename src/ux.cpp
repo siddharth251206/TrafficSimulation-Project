@@ -202,7 +202,7 @@ void UXController::handle_event(const sf::Event& event)
 void UXController::update(float dt)
 {
     camera_controller.handle_kb_panning(dt);
-    camera_controller.clamp_camera();
+    camera_controller.clamp_camera(window);
 
     // Fade + slide animation for info panel
     float fadeSpeed = 2.5f;
