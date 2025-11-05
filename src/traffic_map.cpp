@@ -1,5 +1,6 @@
 #include "traffic_map.hpp"
 #include <memory>
+#include <numeric>
 #include <ranges>
 
 void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end_pos)
@@ -15,6 +16,7 @@ void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end
     end_junction->add_road(new_road);
 
     m_single_roads.push_back(new_road);
+    m_all_roads.push_back(new_road);
 }
 
 void TrafficMap::add_double_road(
@@ -26,7 +28,8 @@ void TrafficMap::add_double_road(
 {
     const std::shared_ptr<Junction> start_junction = get_or_create_junction(start_pos);
     const std::shared_ptr<Junction> end_junction = get_or_create_junction(end_pos);
-    const auto new_double_road = std::make_shared<DoubleRoad>(start_pos, end_pos, width, need_divider);
+    const auto new_double_road =
+        std::make_shared<DoubleRoad>(start_pos, end_pos, width, need_divider);
 
     new_double_road->get_forward()->setStartJunction(start_junction);
     new_double_road->get_reverse()->setStartJunction(end_junction);
@@ -39,6 +42,8 @@ void TrafficMap::add_double_road(
     end_junction->add_road(new_double_road->get_reverse());
 
     m_double_roads.push_back(new_double_road);
+    m_all_roads.push_back(new_double_road->get_forward());
+    m_all_roads.push_back(new_double_road->get_reverse());
 }
 
 std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f& position)
@@ -127,9 +132,29 @@ std::shared_ptr<DoubleRoad> TrafficMap::get_double_road(size_t index) const
     return nullptr;
 }
 
+std::shared_ptr<Road> TrafficMap::get_random_road()
+{
+    if (m_all_roads.empty())
+        return nullptr;
+
+    size_t index = RNG::instance().getIndex(0, m_all_roads.size() - 1);
+    return m_all_roads[index];
+}
+
+size_t TrafficMap::get_car_count() const
+{
+    return std::accumulate(
+        m_all_roads.begin(),
+        m_all_roads.end(),
+        static_cast<size_t>(0),
+        [](size_t sum, const auto& road) { return sum + road->get_car_count(); }
+    );
+}
+
 void TrafficMap::clear()
 {
     m_double_roads.clear();
     m_single_roads.clear();
     m_junctions.clear();
+    m_all_roads.clear();
 }

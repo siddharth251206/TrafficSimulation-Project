@@ -4,10 +4,11 @@
 #include <cmath>
 #include <cstdint>
 
-Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture) : m_road(road)
+Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float start_distance)
+    : m_road(road), m_relative_distance(start_distance)
 {
     if (auto road_ptr = m_road.lock())
-        m_position = road_ptr->get_point_at_distance(0.f);
+        m_position = road_ptr->get_point_at_distance(m_relative_distance);
 
     // If a texture is provided, construct and configure the sprite (SFML 3)
     if (texture)
@@ -43,6 +44,12 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture) : m_road(r
 
 void Car::update(sf::Time elapsed)
 {
+    if (!m_is_finished && m_final_road.lock() && m_road.lock() == m_final_road.lock()
+        && m_relative_distance >= m_destination_distance)
+    {
+        m_is_finished = true;
+    }
+
     const float dt = elapsed.asSeconds();
 
     // Kinematics update
@@ -85,3 +92,31 @@ void Car::draw(sf::RenderWindow& window)
     else if (sf::RectangleShape* m_model = std::get_if<sf::RectangleShape>(&m_visual))
         window.draw(*m_model);
 }
+
+void Car::set_destination(
+    std::deque<std::weak_ptr<Road>> path,
+    const std::weak_ptr<Road>& final_road,
+    const float destination_distance
+)
+{
+    m_path = std::move(path);
+    m_final_road = final_road;
+    m_destination_distance = destination_distance;
+}
+
+std::weak_ptr<Road> Car::get_next_road_in_path()
+{
+    // Logic to get the first road from m_path will go here.
+    if (m_path.empty())
+        return {};
+    return m_path.front();
+}
+
+void Car::advance_path()
+{
+    // Logic to remove the first road from m_path will go here.
+    if (!m_path.empty())
+        m_path.pop_front();
+}
+
+bool Car::is_finished() const { return m_is_finished; }

@@ -41,21 +41,16 @@ void Junction::update(sf::Time elapsed)
 
 void Junction::handle_car_redirection()
 {
-    auto in_car = std::move(j_car_queue.front());
+    if (j_car_queue.empty()) return;
+    auto car = std::move(j_car_queue.front());
     j_car_queue.pop();
 
-    if (j_roads_outgoing.empty())
+    if (auto next_road = car->get_next_road_in_path().lock())
     {
-        in_car.reset();
-        return;
+        car->m_relative_distance = 0.0f;
+        car->m_road = next_road;
+        next_road->add(std::move(car));
     }
-
-    size_t idx = RNG::instance().getIndex(0, j_roads_outgoing.size() - 1);
-    const std::shared_ptr<Road> next_road = j_roads_outgoing[idx].lock();
-
-    in_car->m_relative_distance = 0.0F;
-    in_car->m_road = next_road;
-    next_road->add(std::move(in_car));
 }
 
 void Junction::install_light(sf::Time green_time)
@@ -70,7 +65,7 @@ void Junction::install_light(sf::Time green_time)
         ));
 }
 
-TrafficLight::State Junction::get_light_state_for_road(std::weak_ptr<Road> road)
+TrafficLight::State Junction::get_light_state_for_road(std::weak_ptr<const Road> road) const
 {
     for (TrafficLight it : j_lights)
     {
@@ -94,4 +89,8 @@ void Junction::draw(sf::RenderWindow& window)
     // Draw the lights
     for (auto& light : j_lights)
         light.draw(window);
+}
+const std::vector<std::weak_ptr<Road>>& Junction::get_outgoing_roads() const
+{
+    return j_roads_outgoing;
 }

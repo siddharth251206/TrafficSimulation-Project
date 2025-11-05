@@ -28,6 +28,8 @@ public:
     std::shared_ptr<Road> get_single_road(size_t index) const;
     std::shared_ptr<DoubleRoad> get_double_road(size_t index) const;
     std::shared_ptr<Junction> get_junction(const sf::Vector2f& position);
+    [[nodiscard]] std::shared_ptr<Road> get_random_road();
+    [[nodiscard]] size_t get_car_count() const;
 
     void clear();
 
@@ -35,6 +37,7 @@ private:
     std::shared_ptr<Junction> get_or_create_junction(const sf::Vector2f& position);
     std::vector<std::shared_ptr<DoubleRoad>> m_double_roads;
     std::vector<std::shared_ptr<Road>> m_single_roads;
+    std::vector<std::shared_ptr<Road>> m_all_roads;
     std::unordered_map<sf::Vector2i, std::vector<std::shared_ptr<Junction>>, Junction_Hash>
         m_junctions;
 };

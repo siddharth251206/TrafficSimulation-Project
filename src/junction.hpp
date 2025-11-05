@@ -24,7 +24,8 @@ public:
     bool is_blocked() const { return j_is_occupied || !j_car_queue.empty(); }
 
     void install_light(sf::Time green_time);
-    TrafficLight::State get_light_state_for_road(std::weak_ptr<Road> road);
+    TrafficLight::State get_light_state_for_road(std::weak_ptr<const Road> road) const;
+    const std::vector<std::weak_ptr<Road>>& get_outgoing_roads() const;
 
 private:
     void handle_car_redirection();
@@ -36,6 +37,6 @@ private:
     bool j_is_occupied = false;
     static constexpr float CROSSING_DELAY = 0.5f;// Seconds for a car to cross junction
     float j_crossing_timer = CROSSING_DELAY;
-    float j_radius{ 20.f };
+    float j_radius{ 12.f };
     std::vector<TrafficLight> j_lights;
 };
