@@ -225,31 +225,32 @@ void UXController::spawn_cars()
         auto &uc = user_cars[i];
         if (!uc.is_spawned && uc.source_junction && uc.dest_junction)
         {
-            const auto& outgoing = uc.source_junction->get_outgoing_roads();
-            if (outgoing.empty()) continue;
+            // Compute full path between source and destination
+            PathFinder pf;
+            auto raw_path = pf.find_path(uc.source_junction, uc.dest_junction);
+            if (raw_path.empty())
+                continue;
 
-            size_t idx = RNG::instance().getIndex(0, outgoing.size() - 1);
-            if (auto start_road = outgoing[idx].lock())
-            {
-                PathFinder pf;
-                auto raw_path = pf.find_path(uc.source_junction, uc.dest_junction);
-                if (raw_path.empty())
-                    continue;
+            // Start the car on the FIRST road of the path to keep path and current road aligned
+            auto start_road = raw_path.front().lock();
+            if (!start_road)
+                continue;
 
-                std::weak_ptr<Road> final_road = raw_path.back();
-                auto final_ptr = final_road.lock();
-                if (!final_ptr) continue;
+            std::weak_ptr<Road> final_road = raw_path.back();
+            auto final_ptr = final_road.lock();
+            if (!final_ptr)
+                continue;
 
-                float dest_distance = final_ptr->getLength() * 0.9f;
-                auto car = std::make_unique<Car>(start_road, nullptr, RNG::instance().getFloat(0.f, 10.f), uc.color);
+            float dest_distance = final_ptr->getLength() * 0.9f;
+            auto car = std::make_unique<Car>(start_road, nullptr, RNG::instance().getFloat(0.f, 10.f), uc.color);
 
-                std::deque<std::weak_ptr<Road>> dq(raw_path.begin(), raw_path.end());
-                car->set_destination(std::move(dq), final_road, dest_distance);
-                start_road->add(std::move(car));
+            // Pass the entire path including the starting road; Road::add will pop the current road
+            std::deque<std::weak_ptr<Road>> dq(raw_path.begin(), raw_path.end());
+            car->set_destination(std::move(dq), final_road, dest_distance);
+            start_road->add(std::move(car));
 
-                uc.is_spawned = true;
-                uc.spawned_count++;
-            }
+            uc.is_spawned = true;
+            uc.spawned_count++;
         }
     }
 }
