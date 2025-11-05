@@ -2,6 +2,8 @@
 #include "app_utility.hpp"
 #include "road.hpp"
 #include <SFML/Graphics.hpp>
+#include <algorithm> // for std::min/max
+#include <cmath>     // for std::pow
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -20,10 +22,57 @@ void Junction::accept_car(std::unique_ptr<Car> car) { j_car_queue.push(std::move
 
 void Junction::update(sf::Time elapsed)
 {
-    // Update all traffic lights
-    for (auto& light : j_lights)
-        light.update(elapsed);
+    // --- THIS IS THE NEW "SMART" UPDATE LOGIC ---
+    if (j_has_lights)
+    {
+        j_cycle_timer += elapsed;
 
+        switch (j_current_cycle_state)
+        {
+        case TrafficLight::State::Green:
+            // Check if green time has expired
+            if (j_cycle_timer >= j_current_green_duration)
+            {
+                // Transition from Green to Yellow
+                j_lights[j_current_green_index].set_state(TrafficLight::State::Yellow);
+                j_current_cycle_state = TrafficLight::State::Yellow;
+                j_cycle_timer = sf::Time::Zero;
+            }
+            break;
+
+        case TrafficLight::State::Yellow:
+            // Check if yellow time has expired
+            if (j_cycle_timer >= j_yellow_duration)
+            {
+                // Transition from Yellow to Red, then to next Green
+                
+                // 1. Turn the old light red
+                j_lights[j_current_green_index].set_state(TrafficLight::State::Red);
+
+                // 2. Advance to the next light in the cycle
+                j_current_green_index = (j_current_green_index + 1) % j_lights.size();
+
+                // 3. THIS IS YOUR DYNAMIC LOGIC:
+                //    Calculate the *next* green light's duration based on its road's density
+                j_current_green_duration =
+                    calculate_dynamic_green_time(j_lights[j_current_green_index].get_road());
+
+                // 4. Turn the new light green and reset the cycle
+                j_lights[j_current_green_index].set_state(TrafficLight::State::Green);
+                j_current_cycle_state = TrafficLight::State::Green;
+                j_cycle_timer = sf::Time::Zero;
+            }
+            break;
+
+        case TrafficLight::State::Red:
+            // This state is only for the *initial* setup.
+            // The cycle will start itself from install_light().
+            break;
+        }
+    }
+    // ---------------------------------------------
+
+    // Car crossing logic remains the same
     if (j_is_occupied)
     {
         j_crossing_timer -= elapsed.asSeconds();
@@ -39,9 +88,37 @@ void Junction::update(sf::Time elapsed)
     }
 }
 
+// --- NEW HELPER FUNCTION ---
+sf::Time Junction::calculate_dynamic_green_time(const std::weak_ptr<Road>& road)
+{
+    float density_factor = 1.0f; // Default = base time
+
+    if (auto road_ptr = road.lock())
+    {
+        size_t car_count = road_ptr->get_car_count();
+
+        // Normalize density from 0.0 to 1.0
+        float density_ratio = std::min(
+            1.0f,
+            static_cast<float>(car_count) / static_cast<float>(MAX_DENSITY_CAR_COUNT)
+        );
+
+        // Interpolate between MIN and MAX factors
+        // Example: if density_ratio is 0.5 (half full),
+        // factor = 0.5 + (0.5 * (1.5 - 0.5)) = 0.5 + (0.5 * 1.0) = 1.0
+        density_factor =
+            MIN_GREEN_TIME_FACTOR
+            + (density_ratio * (MAX_GREEN_TIME_FACTOR - MIN_GREEN_TIME_FACTOR));
+    }
+
+    return j_base_green_duration * density_factor;
+}
+// ---------------------------
+
 void Junction::handle_car_redirection()
 {
-    if (j_car_queue.empty()) return;
+    if (j_car_queue.empty())
+        return;
     auto car = std::move(j_car_queue.front());
     j_car_queue.pop();
 
@@ -53,29 +130,67 @@ void Junction::handle_car_redirection()
     }
 }
 
-void Junction::install_light(sf::Time green_time)
+// --- MODIFIED ---
+// This function now just creates the "dumb" lights and
+// initializes the junction's *own* state machine.
+void Junction::install_light(sf::Time base_green_duration, sf::Time base_yellow_duration)
 {
-    for (size_t i{}; i < j_roads_incoming.size(); ++i)
-        j_lights.push_back(TrafficLight(
-            j_roads_incoming[i],
-            green_time,
-            sf::seconds(static_cast<float>((i == 0) ? 0 : i - 1) * (1.1f) * green_time.asSeconds()),
-            j_roads_incoming.size() - 1,
-            (i == 0) ? TrafficLight::State::Green : TrafficLight::State::Red
-        ));
+    if (j_roads_incoming.empty())
+        return;
+
+    // Create a "dumb" light for each incoming road
+    for (const auto& road_weak : j_roads_incoming)
+    {
+        j_lights.emplace_back(road_weak);
+    }
+
+    // Store the base timings
+    j_base_green_duration = base_green_duration;
+    j_yellow_duration = base_yellow_duration;
+
+    // --- Initialize the state machine ---
+    j_has_lights = true;
+    j_cycle_timer = sf::Time::Zero;
+    j_current_green_index = 0; // Start with the first light
+
+    // Calculate the *first* green light's dynamic duration
+    j_current_green_duration =
+        calculate_dynamic_green_time(j_lights[j_current_green_index].get_road());
+
+    // Set the first light to green
+    j_lights[j_current_green_index].set_state(TrafficLight::State::Green);
+    j_current_cycle_state = TrafficLight::State::Green;
+
+    // All other lights are already Red by default.
 }
+// -----------------
 
 TrafficLight::State Junction::get_light_state_for_road(std::weak_ptr<const Road> road) const
 {
-    for (TrafficLight it : j_lights)
+    // If a junction has no lights, all roads are green by default.
+    if (!j_has_lights)
     {
-        if (auto it_ptr = it.get_road().lock())
+        return TrafficLight::State::Green;
+    }
+    
+    // Find the light corresponding to this road
+    for (const auto& light : j_lights)
+    {
+        if (auto it_ptr = light.get_road().lock())
         {
-            if (road.lock() && (*it_ptr == *road.lock()))// OH YEAH! OH YEEEAH! LOCK CEREMONY!
-                return it.get_state();
+            if (auto road_ptr = road.lock())
+            {
+                if (*it_ptr == *road_ptr)
+                {
+                    return light.get_state();
+                }
+            }
         }
     }
-    return TrafficLight::State::Green;// Default to green
+
+    // This case shouldn't be hit if install_light works,
+    // but as a safety, default to Red if a light is missing.
+    return TrafficLight::State::Red;
 }
 
 void Junction::draw(sf::RenderWindow& window)
@@ -83,7 +198,7 @@ void Junction::draw(sf::RenderWindow& window)
     sf::CircleShape circle(j_radius);
     circle.setOrigin({ j_radius, j_radius });
     circle.setPosition(j_position);
-    circle.setFillColor(sf::Color::Green);
+    circle.setFillColor(sf::Color(40, 40, 40)); // Darker junction
     window.draw(circle);
 
     // Draw the lights

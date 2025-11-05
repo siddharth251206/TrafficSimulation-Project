@@ -1,7 +1,23 @@
 #include "traffic_map.hpp"
+#include "file_parse.hpp" // For the actual loading function
+#include <iostream>     // For std::cerr
 #include <memory>
 #include <numeric>
-#include <ranges>
+#include <ranges> // Requires C++20
+
+// --- NEW ---
+// This is now the public-facing function in TrafficMap
+void TrafficMap::load_map_from_file(
+    const std::string& filename,
+    sf::Time green_duration,
+    sf::Time yellow_duration
+)
+{
+    // It just calls the *real* loading function from file_parse.cpp
+    // This keeps the map loading logic separate from the map class.
+    ::load_map_from_file(*this, filename, green_duration, yellow_duration);
+}
+// -----------
 
 void TrafficMap::add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end_pos)
 {
@@ -45,6 +61,38 @@ void TrafficMap::add_double_road(
     m_all_roads.push_back(new_double_road->get_forward());
     m_all_roads.push_back(new_double_road->get_reverse());
 }
+
+// --- NEW FUNCTION DEFINITION ---
+void TrafficMap::install_light_at_junction(
+    const sf::Vector2f& position,
+    sf::Time green_duration,
+    sf::Time yellow_duration
+)
+{
+    if (auto junction = get_junction(position))
+    {
+        // Only install if the junction is an actual intersection
+        if (junction->get_incoming_road_count() >= 2)
+        {
+            junction->install_light(green_duration, yellow_duration);
+        }
+        else
+        {
+            std::cerr << "Warning: Ignoring traffic_light command for junction at (" << position.x
+                      << ", " << position.y << "). Not a valid intersection.\n";
+        }
+    }
+    else
+    {
+        std::cerr << "Warning: Could not find junction at (" << position.x << ", " << position.y
+                  << ") to install light.\n";
+    }
+}
+// -------------------------------
+
+// --- REMOVED ---
+// void TrafficMap::install_all_lights(...)
+// ---------------
 
 std::shared_ptr<Junction> TrafficMap::get_or_create_junction(const sf::Vector2f& position)
 {
@@ -97,6 +145,7 @@ void TrafficMap::update(sf::Time elapsed)
     for (const auto& road : m_single_roads)
         road->update(elapsed);
 
+    // C++20 ranges view
     for (const auto& junction_grid : m_junctions | std::views::values)
     {
         for (auto junction : junction_grid)
@@ -111,6 +160,7 @@ void TrafficMap::draw(sf::RenderWindow& window) const
     for (const auto& road : m_single_roads)
         road->draw(window);
 
+    // C++20 ranges view
     for (const auto& junction_grid : m_junctions | std::views::values)
     {
         for (auto junction : junction_grid)

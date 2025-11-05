@@ -5,6 +5,7 @@
 #include "junction.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <string> // For filename
 #include <unordered_map>
 #include <vector>
 
@@ -12,6 +13,15 @@ class TrafficMap
 {
 public:
     TrafficMap() = default;
+
+    // --- NEW ---
+    // Public-facing map loader
+    void load_map_from_file(
+        const std::string& filename,
+        sf::Time green_duration,
+        sf::Time yellow_duration
+    );
+    // -----------
 
     void add_road(const sf::Vector2f& start_pos, const sf::Vector2f& end_pos);
 
@@ -21,6 +31,19 @@ public:
         float width = 25.f,
         bool need_divider = true
     );
+
+    // --- NEW FUNCTION ---
+    // Finds a junction at a specific position and tells it to install a light.
+    void install_light_at_junction(
+        const sf::Vector2f& position,
+        sf::Time green_duration,
+        sf::Time yellow_duration
+    );
+    // --------------------
+
+    // --- REMOVED ---
+    // void install_all_lights(...);
+    // -----------------
 
     void update(sf::Time elapsed);
     void draw(sf::RenderWindow& window) const;

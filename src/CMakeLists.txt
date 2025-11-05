@@ -29,7 +29,10 @@ target_link_libraries(${PROJECT_NAME}_app
 # This command automatically copies your map data file from the source directory
 # (src) to the binary/build directory (build/.../src) where the executable is.
 # This ensures the executable can always find it.
-file(COPY
-    "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
-    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+add_custom_command(
+    TARGET ${PROJECT_NAME}_app POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}_app>"
+    COMMENT "Copying map_data.txt to build directory"
 )

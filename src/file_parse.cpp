@@ -1,21 +1,26 @@
-#include <iostream>
+#include "file_parse.hpp"
+#include "traffic_map.hpp" // Included via hpp
+#include <SFML/System/Time.hpp> // Included via hpp
 #include <fstream>   // For file reading
-#include <sstream>   // For string parsing
+#include <iostream>
+#include <limits.h>  // For PATH_MAX on linux
 #include <map>       // To store junction names and coordinates
+#include <sstream>   // For string parsing
 #include <stdexcept> // For error handling
 
-#include "traffic_map.hpp"
-
+// Platform-specific code for get_executable_dir()
 #if defined(_WIN32)
     #include <windows.h>
 #elif defined(__APPLE__)
     #include <mach-o/dyld.h>
 #elif defined(__linux__)
     #include <unistd.h>
-    #include <limits.h>
 #endif
 
-std::string get_executable_dir() {
+// This function is unchanged, but file_parse.hpp needs to be included first
+// to get the proper include order for traffic_map.hpp and string.
+std::string get_executable_dir()
+{
     char buffer[4096];
     std::string exePath;
 
@@ -43,6 +48,8 @@ std::string get_executable_dir() {
 #endif
 
     // Use C++17 filesystem to get the parent directory
+    // This requires <filesystem> which you had in your original file
+    // (but was missing from the include list)
     std::filesystem::path pathObj(exePath);
     return pathObj.parent_path().string();
 }
@@ -50,19 +57,25 @@ std::string get_executable_dir() {
 /**
  * @brief Loads map data from a text file and populates the TrafficMap.
  *
- * This function reads a specified file, parsing junction definitions and
- * road connections to build the map.
- *
  * File Format:
- * # Comments are ignored
- * junction <name> <x_coord> <y_coord>
+ * ...
  * road <junction_name_1> <junction_name_2> <width> <need_divider_bool (true/false)>
+ * traffic_light <x_coord> <y_coord>
  *
- * @param traffic_map The TrafficMap object to populate.
- * @param filename The path to the map data file.
+ * @param ...
+ * @param green_duration Default green time for lights
+ * @param yellow_duration Default yellow time for lights
  */
 
-void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
+// --- MODIFIED ---
+// Updated signature to accept light timings
+void load_map_from_file(
+    TrafficMap& traffic_map,
+    const std::string& filename,
+    sf::Time green_duration,
+    sf::Time yellow_duration
+)
+// ----------------
 {
     std::map<std::string, sf::Vector2f> junctions;
     std::ifstream file(filename);
@@ -104,14 +117,15 @@ void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
             }
             else
             {
-                std::cerr << "Error parsing junction at line " << line_number << ": " << line << std::endl;
+                std::cerr << "Error parsing junction at line " << line_number << ": " << line
+                          << std::endl;
             }
         }
         else if (line_type == "road")
         {
             std::string j1_name, j2_name, divider_str;
             float width;
-            bool need_divider = true; // Default from your original code
+            bool need_divider = true;// Default from your original code
 
             if (ss >> j1_name >> j2_name >> width >> divider_str)
             {
@@ -119,23 +133,46 @@ void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
 
                 if (junctions.find(j1_name) == junctions.end())
                 {
-                    std::cerr << "Error: Unknown junction '" << j1_name << "' at line " << line_number << std::endl;
+                    std::cerr << "Error: Unknown junction '" << j1_name << "' at line "
+                              << line_number << std::endl;
                     continue;
                 }
                 if (junctions.find(j2_name) == junctions.end())
                 {
-                    std::cerr << "Error: Unknown junction '" << j2_name << "' at line " << line_number << std::endl;
+                    std::cerr << "Error: Unknown junction '" << j2_name << "' at line "
+                              << line_number << std::endl;
                     continue;
                 }
 
-                traffic_map.add_double_road(junctions[j1_name], junctions[j2_name], width, need_divider);
+                traffic_map.add_double_road(
+                    junctions[j1_name], junctions[j2_name], width, need_divider
+                );
                 // std::cout << "Loaded road: " << j1_name << " to " << j2_name << std::endl;
             }
             else
             {
-                std::cerr << "Error parsing road at line " << line_number << ": " << line << std::endl;
+                std::cerr << "Error parsing road at line " << line_number << ": " << line
+                          << std::endl;
             }
         }
+        // --- NEW LOGIC ---
+        // Parse the new 'traffic_light' command
+        else if (line_type == "traffic_light")
+        {
+            float x, y;
+            if (ss >> x >> y)
+            {
+                traffic_map.install_light_at_junction(
+                    { x, y }, green_duration, yellow_duration
+                );
+            }
+            else
+            {
+                std::cerr << "Error parsing traffic_light at line " << line_number << ": " << line
+                          << std::endl;
+            }
+        }
+        // -----------------
     }
 
     std::cout << "Successfully loaded map data from: " << filename << std::endl;

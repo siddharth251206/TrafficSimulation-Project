@@ -1,6 +1,6 @@
 #include "camera.hpp"
-#include "pathfinder.hpp"
 #include "file_parse.hpp"
+#include "pathfinder.hpp"
 #include "traffic_map.hpp"
 #include <SFML/Graphics.hpp>
 #include <iostream>
@@ -19,12 +19,16 @@ int main()
     TrafficMap traffic_map;
 
     // --- LOAD MAP FROM FILE ---
-    // All the junction definitions and add_double_road calls
-    // have been moved to "map_data.txt" and are loaded by this function.
+    // We now pass the default light timings to the loader.
+    // The loader will use these timings *only* for junctions
+    // specified in map_data.txt.
     try
     {
-        load_map_from_file(traffic_map, get_executable_dir() + "/map_data.txt");
-        // load_map_from_file(traffic_map, "map_data.txt");
+        traffic_map.load_map_from_file(
+            get_executable_dir() + "/map_data.txt",
+            sf::seconds(8.f),  // Base Green Time
+            sf::seconds(2.f)   // Base Yellow Time
+        );
     }
     catch (const std::exception& e)
     {
@@ -32,6 +36,8 @@ int main()
         return -1; // Exit if map loading fails
     }
     // -----------------------------------------------------------------------
+
+    // --- The call to install_all_lights() is GONE. ---
 
     // ----------- VEHICLES & CAMERA -------------
     sf::Texture car_texture;

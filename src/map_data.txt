@@ -306,3 +306,30 @@ road lx3 se3 15 true
 road lx2 se2 15 true
 road lx1 se1 15 true
 road lx2 se6 15 true
+
+--------------------------------------
+
+--- ADD TRAFFIC LIGHTS (NEW SECTION) ---
+
+--------------------------------------
+
+These commands tell the simulation to install a smart
+
+traffic light at the junction at these exact coordinates.
+
+Busiest 4-way and 5-way intersections from the old map
+
+traffic_light 200 375
+traffic_light 700 375
+traffic_light 700 500
+traffic_light 300 500
+traffic_light 900 300
+
+Some key intersections from the new grid areas
+
+traffic_light 1000 300
+traffic_light 1000 500
+traffic_light 1000 700
+traffic_light 50 300
+traffic_light 50 500
+traffic_light 500 500
