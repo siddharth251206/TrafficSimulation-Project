@@ -35,11 +35,18 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float star
         );
     }
 
-    // --- IDM property randomization ---
-    m_max_speed = RNG::instance().getFloat(110.f, 160.f);
-    m_max_acceleration = RNG::instance().getFloat(40.f, 60.f);
-    m_brake_deceleration = RNG::instance().getFloat(80.f, 100.f);
-    m_time_headway = RNG::instance().getFloat(1.1f, 2.0f);
+    // --- IDM property randomization (REALISTIC VALUES) ---
+    // Max speed: 120-180 km/h equivalent (in pixels/second, ~33-50 pixels/sec)
+    m_max_speed = RNG::instance().getFloat(120.f, 180.f);
+    
+    // Max acceleration: 2-4 m/s² equivalent (in pixels/second²)
+    m_max_acceleration = RNG::instance().getFloat(50.f, 80.f);
+    
+    // Brake deceleration: 4-6 m/s² equivalent (comfortable braking)
+    m_brake_deceleration = RNG::instance().getFloat(80.f, 120.f);
+    
+    // Time headway: 1.0-2.0 seconds (following distance preference)
+    m_time_headway = RNG::instance().getFloat(1.0f, 2.0f);
 }
 
 void Car::update(sf::Time elapsed)
@@ -52,11 +59,24 @@ void Car::update(sf::Time elapsed)
 
     const float dt = elapsed.asSeconds();
 
+    // --- FIX: Store old distance for overlap prevention ---
+    float old_distance = m_relative_distance;
+    
     // Kinematics update
     m_relative_distance += (m_speed + 0.5f * m_acceleration * dt) * dt;
     m_speed += m_acceleration * dt;
+    
+    // --- FIX: Prevent negative speed ---
     if (m_speed < 0.f)
+    {
         m_speed = 0.f;
+        // If speed hits zero and we were braking, stop moving backward
+        if (m_acceleration < 0.f && m_relative_distance < old_distance)
+        {
+            m_relative_distance = old_distance;
+        }
+    }
+    // -----------------------------------
 
     if (auto road_ptr = m_road.lock())
     {
@@ -66,6 +86,14 @@ void Car::update(sf::Time elapsed)
         {
             m_relative_distance = road_len;
         }
+        
+        // --- FIX: Also prevent moving backward past start ---
+        if (m_relative_distance < 0.f)
+        {
+            m_relative_distance = 0.f;
+            m_speed = 0.f;
+        }
+        // ---------------------------------------------------
 
         // Update position and orientation
         m_position = road_ptr->get_point_at_distance(m_relative_distance);

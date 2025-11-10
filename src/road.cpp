@@ -21,6 +21,7 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
     m_model[0] = sf::Vertex{ m_start };
     m_model[1] = sf::Vertex{ m_end };
 }
+
 void Road::add(std::unique_ptr<Car> car)
 {
     car->advance_path();
@@ -33,6 +34,7 @@ void Road::setStartJunction(const std::shared_ptr<Junction>& junction)
 {
     m_junctions.first = junction;
 }
+
 void Road::setEndJunction(const std::shared_ptr<Junction>& junction)
 {
     m_junctions.second = junction;
@@ -50,67 +52,99 @@ void Road::update(sf::Time elapsed)
         float speed = 0.f;
     };
 
-    // Loop 1: Calculate Accelerations using IDM
+    // Check end-of-road obstacles ONCE for all cars
+    Obstacle end_of_road_obstacle;
+    end_of_road_obstacle.position = std::numeric_limits<float>::infinity();
+    
+    if (auto end_junction = getEndJunction().lock())
+    {
+        auto light_state = end_junction->get_light_state_for_road(shared_from_this());
+        
+        // Red/yellow light OR blocked junction = obstacle at road end
+        if (light_state != TrafficLight::State::Green || end_junction->is_blocked())
+        {
+            end_of_road_obstacle.position = m_length;
+            end_of_road_obstacle.speed = 0.f;
+        }
+    }
+
+    // Loop 1: Calculate Accelerations using PROPER IDM
     for (size_t i = 0; i < m_cars.size(); ++i)
     {
         Car* current_car = m_cars[i].get();
         Obstacle obstacle;
 
-        // Step 1: Determine the immediate obstacle.
-        if (i > 0)// Is there a car in front?
+        // Step 1: Find the closest obstacle
+        if (i > 0) // Car in front
         {
             obstacle = { m_cars[i - 1]->m_relative_distance, m_cars[i - 1]->m_speed };
         }
-        else// It is the first car
+        else // First car - check end of road
         {
-            // Check for an obstacle at the end of the road (light or blocked junction).
-            if (auto end_junction = getEndJunction().lock())
-            {
-                auto light_state = end_junction->get_light_state_for_road(shared_from_this());
-                // A red/yellow light or a backed-up junction is a "wall" at the end of the road.
-                if (light_state != TrafficLight::State::Green || end_junction->is_blocked())
-                {
-                    // The car in front is the primary obstacle.
-                    obstacle = { m_length, 0.f };
-                }
-            }
+            obstacle = end_of_road_obstacle;
+        }
+        
+        // ALL cars should also check end-of-road obstacles
+        // Even if there's a car in front, the red light might be closer!
+        if (end_of_road_obstacle.position < obstacle.position)
+        {
+            obstacle = end_of_road_obstacle;
         }
 
-        // Step 2: Apply the IDM formula with the determined obstacle.
-        const float min_jam_distance = 7.f;
-        const float acceleration_exponent = 4.0f;
-
+        // === PROPER IDM IMPLEMENTATION ===
+        
+        // IDM Parameters (from the car's individual properties)
+        const float v = current_car->m_speed;                    // Current speed
+        const float v_0 = current_car->m_max_speed;              // Desired speed
+        const float a = current_car->m_max_acceleration;         // Max acceleration
+        const float b = current_car->m_brake_deceleration;       // Comfortable braking
+        const float T = current_car->m_time_headway;             // Desired time headway
+        const float s_0 = 10.f;                                  // Minimum gap (jam distance)
+        const float delta = 4.0f;                                // Acceleration exponent
+        
+        // Calculate actual gap to obstacle
         float s = obstacle.position - current_car->m_relative_distance - Car::CAR_LENGTH;
-        if (s < 0.01f)
-            s = 0.01f;
-
-        float delta_v = current_car->m_speed - obstacle.speed;
-
-        float s_star =
-            min_jam_distance
-            + std::max(
-                0.f,
-                (current_car->m_speed * current_car->m_time_headway
-                 + (current_car->m_speed * delta_v)
-                       / (2.0f
-                          * std::sqrt(
-                              current_car->m_max_acceleration * current_car->m_brake_deceleration
-                          )))
-            );
-
-        float free_road_term =
-            std::pow(current_car->m_speed / current_car->m_max_speed, acceleration_exponent);
-        float interaction_term = (s_star * s_star) / (s * s);
-
-        // Set the final calculated acceleration for this frame.
-        float calculated_acc =
-            current_car->m_max_acceleration * (1.0f - free_road_term - interaction_term);
-
-        // this nugget of fuck is why the car's accel isn't negativer than max break force
-        // so if this clusterfucking function says, "hi m_acceleration = -100000!"
-        // it says, "fuckity nope, m_acceleration is -m_brake_deceleration"
-        // and stops cars from disappearing. i do not know why. i am sorry
-        current_car->m_acceleration = std::max(-current_car->m_brake_deceleration, calculated_acc);
+        
+        // === HANDLE CRITICAL SITUATIONS ===
+        if (s <= 0.0f)
+        {
+            // EMERGENCY: Cars are overlapping!
+            current_car->m_acceleration = -b * 2.0f; // Double braking
+            current_car->m_speed *= 0.8f; // Force speed reduction
+            continue;
+        }
+        else if (s < s_0)
+        {
+            // DANGER: Too close, heavy braking
+            float danger_factor = s / s_0; // 0 to 1
+            current_car->m_acceleration = -b * (1.5f - 0.5f * danger_factor);
+            continue;
+        }
+        
+        // === STANDARD IDM CALCULATION ===
+        
+        // Calculate velocity difference
+        float delta_v = v - obstacle.speed;
+        
+        // Calculate desired gap s*
+        float sqrt_term = std::sqrt(a * b);
+        float s_star = s_0 + std::max(0.f, v * T + (v * delta_v) / (2.0f * sqrt_term));
+        
+        // Free road acceleration term
+        float free_road_term = std::pow(v / v_0, delta);
+        
+        // Interaction term
+        float interaction_term = std::pow(s_star / s, 2.0f);
+        
+        // Final IDM acceleration
+        float idm_acceleration = a * (1.0f - free_road_term - interaction_term);
+        
+        // Clamp to reasonable limits
+        current_car->m_acceleration = std::clamp(
+            idm_acceleration,
+            -b * 1.5f,  // Max braking (with some buffer for emergencies)
+            a           // Max acceleration
+        );
     }
 
     // Loop 2: Update car positions based on calculated accelerations
@@ -124,7 +158,6 @@ void Road::update(sf::Time elapsed)
         [&](std::unique_ptr<Car>& car)
         {
             // Despawn cars that have reached their destination
-            // This must come before any junction transfer logic
             if (car->is_finished())
                 return true;
 
@@ -156,10 +189,9 @@ bool Road::operator==(const Road& other) const
 {
     return ((m_start == other.m_start) && (m_end == other.m_end));
 }
+
 float Road::get_travel_time() const
 {
-    // Logic for calculating time based on length and m_cars.size() will go here.
-
     if (auto end_junc = getEndJunction().lock())
     {
         if (end_junc->get_light_state_for_road(shared_from_this()) != TrafficLight::State::Green)
