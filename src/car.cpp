@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <variant>
 
-Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float start_distance)
+Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float start_distance, const sf::Color& color)
     : m_road(road), m_relative_distance(start_distance), m_state(CarState::Spawning),
       m_fade_timer(FADE_IN_DURATION)
 {
@@ -22,20 +22,15 @@ Car::Car(const std::weak_ptr<Road>& road, const sf::Texture* texture, float star
         const sf::Vector2f originPoint(bounds.size.x / 2.f, bounds.size.y / 2.f);
         m_sprite.setOrigin(originPoint);
         m_sprite.setScale({ 0.5f, 0.5f });
+        m_sprite.setColor(color); // ✅ tint sprite with passed color
     }
     else
     {
         // Fallback rectangle styling (when no texture is provided)
         m_visual.emplace<sf::RectangleShape>(sf::RectangleShape({ CAR_LENGTH, CAR_LENGTH }));
         sf::RectangleShape& m_model = std::get<sf::RectangleShape>(m_visual);
-        m_model.setOrigin({ CAR_LENGTH / 2, CAR_LENGTH / 2 });
-        m_model.setFillColor(
-            sf::Color(
-                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
-                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255)),
-                static_cast<std::uint8_t>(RNG::instance().getFloat(100, 255))
-            )
-        );
+        m_model.setOrigin({ CAR_LENGTH / 2.f, CAR_LENGTH / 2.f });
+        m_model.setFillColor(color); // ✅ use passed color directly
     }
 
     // --- IDM property randomization ---
@@ -148,7 +143,6 @@ void Car::set_destination(
 
 std::weak_ptr<Road> Car::get_next_road_in_path()
 {
-    // Logic to get the first road from m_path will go here.
     if (m_path.empty())
         return {};
     return m_path.front();
@@ -156,7 +150,6 @@ std::weak_ptr<Road> Car::get_next_road_in_path()
 
 void Car::advance_path()
 {
-    // Logic to remove the first road from m_path will go here.
     if (!m_path.empty())
         m_path.pop_front();
 }

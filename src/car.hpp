@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
 #include <deque>
 #include <memory>
@@ -28,15 +29,20 @@ public:
     explicit Car(
         const std::weak_ptr<Road>& road,
         const sf::Texture* texture = nullptr,
-        float start_distance = 0.f
+        float start_distance = 0.f,
+        const sf::Color& color = sf::Color::White
     );
+
     void update(sf::Time elapsed);
     void draw(sf::RenderWindow& window);
+
+    // destination path: deque of roads (weak_ptr), final_road and distance on final road
     void set_destination(
         std::deque<std::weak_ptr<Road>> path,
         const std::weak_ptr<Road>& final_road,
         float destination_distance
     );
+
     std::weak_ptr<Road> get_next_road_in_path();
     void advance_path();
     // True if car has reached its destination
@@ -58,19 +64,17 @@ private:
     float m_max_speed;
     float m_max_acceleration;
     float m_brake_deceleration;
-    float m_time_headway;// Driver's preferred time gap to the car in front
+    float m_time_headway; // Driver preferred headway
 
     static constexpr float CAR_LENGTH = 30.f;
     sf::Vector2f m_position;
-    // The car can be one of rectangle or sprite.
-    std::variant<sf::RectangleShape, sf::Sprite> m_visual;
-    std::deque<std::weak_ptr<Road>> m_path;// Stores the car's route
 
-    // Reference to this car's destination road
+    // The car visual: either rectangle or sprite
+    std::variant<sf::RectangleShape, sf::Sprite> m_visual;
+
+    std::deque<std::weak_ptr<Road>> m_path; // route
     std::weak_ptr<Road> m_final_road;
-    // Exact point on destination road where car is sentenced to death
-    float m_destination_distance;
-    // Flag indicating car has reached its final destination
+    float m_destination_distance = 0.f;
     bool m_is_finished = false;
 
     // State management

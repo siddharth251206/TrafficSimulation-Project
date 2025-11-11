@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}_app
         camera.cpp
         pathfinder.cpp
         file_parse.cpp
+        ux.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app
