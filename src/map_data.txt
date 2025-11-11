@@ -306,3 +306,8 @@ road lx3 se3 15 true
 road lx2 se2 15 true
 road lx1 se1 15 true
 road lx2 se6 15 true
+
+--- TRAFFIC LIGHTS ---
+
+lights se11
+lights temple_junction

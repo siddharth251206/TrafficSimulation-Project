@@ -25,11 +25,21 @@ target_link_libraries(${PROJECT_NAME}_app
     SFML::Audio
 )
 
-# --- NEW COMMAND ADDED ---
 # This command automatically copies your map data file from the source directory
 # (src) to the binary/build directory (build/.../src) where the executable is.
-# This ensures the executable can always find it.
-file(COPY
-    "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt"
-    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+set(DATA_FILE_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/map_data.txt")
+set(DATA_FILE_DEST "${CMAKE_CURRENT_BINARY_DIR}/map_data.txt")
+
+# Create a custom target that copies the file
+add_custom_command(
+    OUTPUT ${DATA_FILE_DEST}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DATA_FILE_SOURCE} ${DATA_FILE_DEST}
+    DEPENDS ${DATA_FILE_SOURCE}
+    COMMENT "Copying map_data.txt..."
 )
+
+add_custom_target(copy_map_data
+    DEPENDS ${DATA_FILE_DEST}
+)
+# Make your main app DEPEND on this target
+add_dependencies(${PROJECT_NAME}_app copy_map_data)

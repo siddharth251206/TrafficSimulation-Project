@@ -1,21 +1,22 @@
+#include <fstream>// For file reading
 #include <iostream>
-#include <fstream>   // For file reading
-#include <sstream>   // For string parsing
-#include <map>       // To store junction names and coordinates
-#include <stdexcept> // For error handling
+#include <map>// To store junction names and coordinates
+#include <sstream>// For string parsing
+#include <stdexcept>// For error handling
 
 #include "traffic_map.hpp"
 
 #if defined(_WIN32)
-    #include <windows.h>
+#include <windows.h>
 #elif defined(__APPLE__)
-    #include <mach-o/dyld.h>
+#include <mach-o/dyld.h>
 #elif defined(__linux__)
-    #include <unistd.h>
-    #include <limits.h>
+#include <limits.h>
+#include <unistd.h>
 #endif
 
-std::string get_executable_dir() {
+std::string get_executable_dir()
+{
     char buffer[4096];
     std::string exePath;
 
@@ -39,7 +40,7 @@ std::string get_executable_dir() {
     exePath = buffer;
 
 #else
-    #error "Unsupported platform"
+#error "Unsupported platform"
 #endif
 
     // Use C++17 filesystem to get the parent directory
@@ -100,18 +101,20 @@ void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
             if (ss >> name >> x >> y)
             {
                 junctions[name] = { x, y };
-                // std::cout << "Loaded junction: " << name << " at (" << x << ", " << y << ")" << std::endl;
+                // std::cout << "Loaded junction: " << name << " at (" << x << ", " << y << ")" <<
+                // std::endl;
             }
             else
             {
-                std::cerr << "Error parsing junction at line " << line_number << ": " << line << std::endl;
+                std::cerr << "Error parsing junction at line " << line_number << ": " << line
+                          << std::endl;
             }
         }
         else if (line_type == "road")
         {
             std::string j1_name, j2_name, divider_str;
             float width;
-            bool need_divider = true; // Default from your original code
+            bool need_divider = true;// Default from your original code
 
             if (ss >> j1_name >> j2_name >> width >> divider_str)
             {
@@ -119,21 +122,45 @@ void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
 
                 if (junctions.find(j1_name) == junctions.end())
                 {
-                    std::cerr << "Error: Unknown junction '" << j1_name << "' at line " << line_number << std::endl;
+                    std::cerr << "Error: Unknown junction '" << j1_name << "' at line "
+                              << line_number << std::endl;
                     continue;
                 }
                 if (junctions.find(j2_name) == junctions.end())
                 {
-                    std::cerr << "Error: Unknown junction '" << j2_name << "' at line " << line_number << std::endl;
+                    std::cerr << "Error: Unknown junction '" << j2_name << "' at line "
+                              << line_number << std::endl;
                     continue;
                 }
 
-                traffic_map.add_double_road(junctions[j1_name], junctions[j2_name], width, need_divider);
+                traffic_map.add_double_road(
+                    junctions[j1_name], junctions[j2_name], width, need_divider
+                );
                 // std::cout << "Loaded road: " << j1_name << " to " << j2_name << std::endl;
             }
             else
             {
-                std::cerr << "Error parsing road at line " << line_number << ": " << line << std::endl;
+                std::cerr << "Error parsing road at line " << line_number << ": " << line
+                          << std::endl;
+            }
+        }
+        else if (line_type == "lights")
+        {
+            std::string junction_name;
+            if (ss >> junction_name)
+            {
+                if (junctions.find(junction_name) == junctions.end())
+                {
+                    std::cerr << "Error: Unknown junction to install light: '" << junction_name
+                              << "' at line " << line_number << std::endl;
+                    continue;
+                }
+                traffic_map.get_junction(junctions[junction_name])->install_light(sf::seconds(5));
+            }
+            else
+            {
+                std::cerr << "Error parsing light installation at line " << line_number << ": "
+                          << line << std::endl;
             }
         }
     }
