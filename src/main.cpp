@@ -68,7 +68,11 @@ int main()
 
     // --- 🆕 Font setup (graceful fallback) ---
     sf::Font font;
-    if (!font.openFromFile(get_executable_dir() + "/../../assets/contemporary-regular.ttf"))
+    if (!font.openFromFile(get_executable_dir() + "/../../" +
+    #if defined(_WIN32)
+    "../" +
+    #endif
+    "assets/contemporary-regular.ttf"))
     {
         std::cerr << "[Warning] Default system font not found — using empty font.\n";
     }
