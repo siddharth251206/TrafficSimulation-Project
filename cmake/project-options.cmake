@@ -16,7 +16,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Provide compile_commands.json in the project root for clangd/VSCode
-if(CMAKE_EXPORT_COMPILE_COMMANDS)
+# Only applicable for single-config generators that actually emit compile_commands (Ninja/Unix)
+if(CMAKE_EXPORT_COMPILE_COMMANDS AND (CMAKE_GENERATOR MATCHES "Ninja|Unix Makefiles"))
   if(WIN32)
     # On Windows, creating symlinks commonly requires admin privileges (especially under OneDrive).
     # Use a regular file copy instead to avoid permission failures.

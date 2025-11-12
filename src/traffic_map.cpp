@@ -106,11 +106,13 @@ void TrafficMap::update(sf::Time elapsed)
 
 void TrafficMap::draw(sf::RenderWindow& window) const
 {
+    // Draw roads and cars
     for (const auto& road : m_double_roads)
         road->draw(window);
     for (const auto& road : m_single_roads)
         road->draw(window);
 
+    // Draw junctions and lights on top
     for (const auto& junction_grid : m_junctions | std::views::values)
     {
         for (auto junction : junction_grid)

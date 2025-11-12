@@ -106,10 +106,7 @@ void Road::update(sf::Time elapsed)
         float calculated_acc =
             current_car->m_max_acceleration * (1.0f - free_road_term - interaction_term);
 
-        // this nugget of fuck is why the car's accel isn't negativer than max break force
-        // so if this clusterfucking function says, "hi m_acceleration = -100000!"
-        // it says, "fuckity nope, m_acceleration is -m_brake_deceleration"
-        // and stops cars from disappearing. i do not know why. i am sorry
+        
         current_car->m_acceleration = std::max(-current_car->m_brake_deceleration, calculated_acc);
     }
 
@@ -147,7 +144,13 @@ void Road::update(sf::Time elapsed)
 
 void Road::draw(sf::RenderWindow& window) const
 {
-    window.draw(m_model);
+    // Road geometry is drawn by DoubleRoad; here we only render cars
+    for (const auto& car : m_cars)
+        car->draw(window);
+}
+
+void Road::draw_cars(sf::RenderWindow& window) const
+{
     for (const auto& car : m_cars)
         car->draw(window);
 }

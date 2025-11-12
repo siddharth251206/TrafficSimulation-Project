@@ -1,5 +1,7 @@
 # Build directories and binary files
 build/
+build-msvc/
+build-*/
 out/
 out/coverage/*
 cmake-build-*/
