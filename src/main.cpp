@@ -113,53 +113,47 @@ int main()
         ux.spawn_cars();
 
         // --- Auto-spawn random traffic ---
-        if (traffic_map.get_car_count() < max_cars
-            && spawn_timer.getElapsedTime().asSeconds() > 0.2f)
-        {
-            if (auto start_road = traffic_map.get_random_road(),
-                end_road = traffic_map.get_random_road();
-                start_road && end_road)
-            {
-                float start_distance = RNG::instance().getFloat(0.f, start_road->getLength());
-                float end_distance   = RNG::instance().getFloat(0.f, end_road->getLength());
+        // if (traffic_map.get_car_count() < max_cars
+        //     && spawn_timer.getElapsedTime().asSeconds() > 0.2f)
+        // {
+        //     if (auto start_road = traffic_map.get_random_road(),
+        //         end_road = traffic_map.get_random_road();
+        //         start_road && end_road)
+        //     {
+        //         float start_distance = RNG::instance().getFloat(0.f, start_road->getLength());
+        //         float end_distance   = RNG::instance().getFloat(0.f, end_road->getLength());
 
-                if (start_road == end_road)
-                {
-                    if (end_distance > start_distance)
-                    {
-                        auto car = std::make_unique<Car>(
-                            start_road, loaded ? &car_texture : nullptr, start_distance
-                        );
-                        car->set_destination({}, end_road, end_distance);
-                        start_road->add(std::move(car));
-                    }
-                }
-                else if (auto start_junction = start_road->getEndJunction().lock(),
-                         end_junction   = end_road->getEndJunction().lock();
-                         start_junction && end_junction)
-                {
-                    PathFinder pathfinder;
-                    if (auto path = pathfinder.find_path(start_junction, end_junction);
-                        !path.empty() && path.back().lock() == end_road)
-                    {
-                        auto car = std::make_unique<Car>(
-                            start_road, loaded ? &car_texture : nullptr, start_distance
-                        );
-                        car->set_destination(path, end_road, end_distance);
-                        start_road->add(std::move(car));
-                    }
-                }
-            }
-            spawn_timer.restart();
-        }
+        //         if (start_road == end_road)
+        //         {
+        //             if (end_distance > start_distance)
+        //             {
+        //                 auto car = std::make_unique<Car>(
+        //                     start_road, loaded ? &car_texture : nullptr, start_distance
+        //                 );
+        //                 car->set_destination({}, end_road, end_distance);
+        //                 start_road->add(std::move(car));
+        //             }
+        //         }
+        //         else if (auto start_junction = start_road->getEndJunction().lock(),
+        //                  end_junction   = end_road->getEndJunction().lock();
+        //                  start_junction && end_junction)
+        //         {
+        //             PathFinder pathfinder;
+        //             if (auto path = pathfinder.find_path(start_junction, end_junction);
+        //                 !path.empty() && path.back().lock() == end_road)
+        //             {
+        //                 auto car = std::make_unique<Car>(
+        //                     start_road, loaded ? &car_texture : nullptr, start_distance
+        //                 );
+        //                 car->set_destination(path, end_road, end_distance);
+        //                 start_road->add(std::move(car));
+        //             }
+        //         }
+        //     }
+        //     spawn_timer.restart();
+        // }
         // --- Draw everything ---
         traffic_map.update(elapsed);
-
-        // window.setView(camera_controller.get_camera());
-        // window.clear(sf::Color(20, 20, 40));
-        // traffic_map.draw(window);
-        // ux.render_ui();
-        // window.display();
 
         window.clear(sf::Color(20, 20, 40));
 

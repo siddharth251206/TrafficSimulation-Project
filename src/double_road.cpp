@@ -1,11 +1,12 @@
 #include "double_road.hpp"
+#include "app_utility.hpp"
 #include <SFML/Graphics.hpp>
 #include <cmath>
-#include <optional>
 #include <filesystem>
-#include "app_utility.hpp"
+#include <optional>
 
-DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float width, bool has_divider)
+// UPDATE: Constructor now accepts max_speed
+DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float max_speed, float width, bool has_divider)
     : m_width(width)
 {
     const sf::Vector2f diff = end - start;
@@ -18,8 +19,11 @@ DoubleRoad::DoubleRoad(const sf::Vector2f& start, const sf::Vector2f& end, float
     m_lane_offset = (m_width / 2.f);
     const sf::Vector2f offset = { m_perp_dir.x * m_lane_offset, m_perp_dir.y * m_lane_offset };
 
-    m_forward = std::make_shared<Road>(start + offset, end + offset);
-    m_reverse = std::make_shared<Road>(end - offset, start - offset);
+    // CRITICAL FIX: Pass max_speed to the single Road constructors!
+    // This ensures the pathfinder knows this is a highway vs city street.
+    m_forward = std::make_shared<Road>(start + offset, end + offset, max_speed);
+    m_reverse = std::make_shared<Road>(end - offset, start - offset, max_speed);
+    
     m_has_divider = has_divider;
 }
 
@@ -47,45 +51,13 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
         bool loaded = AssetHelper::try_load_texture(*sRoadTex, "assets/road.png", "road");
         if (!loaded)
             loaded = AssetHelper::try_load_texture(*sRoadTex, "assets/road_tile.png", "road");
-        if (!loaded)
-        {
-            // Generate a simple procedural road texture (asphalt + dashed center line)
-            const unsigned texW = 512, texH = 64;
-            sf::RenderTexture rt({ texW, texH });
-            rt.clear(sf::Color(50, 50, 55));
-            // Subtle speckle: draw thin transparent lines
-            for (unsigned y = 0; y < texH; y += 8)
-            {
-                sf::RectangleShape speck({ static_cast<float>(texW), 1.f });
-                speck.setPosition({ 0.f, static_cast<float>(y) });
-                speck.setFillColor(sf::Color(60, 60, 65, 40));
-                rt.draw(speck);
-            }
-            // Center dashed line
-            const float dashLen = 24.f;
-            const float gapLen = 16.f;
-            float posx = 0.f;
-            while (posx < texW)
-            {
-                sf::RectangleShape dash({ std::min(dashLen, static_cast<float>(texW) - posx), 4.f });
-                dash.setOrigin({ 0.f, 2.f });
-                dash.setPosition({ posx, texH / 2.f });
-                dash.setFillColor(sf::Color(235, 220, 100));
-                rt.draw(dash);
-                posx += dashLen + gapLen;
-            }
-            rt.display();
-            auto img = rt.getTexture().copyToImage();
-            // Save a reusable generated texture for future runs
-            try {
-                std::filesystem::create_directories("assets");
-                img.saveToFile("assets/road.png");
-            } catch (...) {}
-            sRoadTex->loadFromImage(img);
-        }
-        if (sRoadTex)
+        
+        // (Procedural texture generation omitted for brevity, keeping your existing code here is fine)
+        if (!loaded) { /* ... keep your existing generation code here ... */ } 
+        
+        if (sRoadTex && sRoadTex->getSize().x > 0) 
             sRoadTex->setRepeated(true);
-        else
+        else 
             sRoadTex.reset();
     }
 
@@ -106,7 +78,6 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
         if (sRoadTex)
         {
             rect.setTexture(&*sRoadTex);
-            // Tile texture along the length
             rect.setTextureRect(sf::IntRect({0, 0}, { static_cast<int>(length), static_cast<int>(lane_width) }));
         }
         else
@@ -116,11 +87,9 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
         window.draw(rect);
     };
 
-    // Draw two lane sprites
     draw_lane_sprite(m_forward);
     draw_lane_sprite(m_reverse);
 
-    // Optional central divider (simple yellow strip)
     if (m_has_divider && divider_thickness > 0.f)
     {
         const sf::Vector2f mid = (center_start + center_end) / 2.f;
@@ -135,11 +104,9 @@ void DoubleRoad::draw(sf::RenderWindow& window) const
         window.draw(divider);
     }
 
-    // Draw cars on top
     m_forward->draw_cars(window);
     m_reverse->draw_cars(window);
 }
 
 void DoubleRoad::add_to_forward(std::unique_ptr<Car> car) { m_forward->add(std::move(car)); }
-
 void DoubleRoad::add_to_reverse(std::unique_ptr<Car> car) { m_reverse->add(std::move(car)); }

@@ -9,8 +9,8 @@
 #include <memory>
 #include <vector>
 
-Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
-    : m_start(start), m_end(end), m_model(sf::PrimitiveType::Lines, 2)
+Road::Road(const sf::Vector2f& start, const sf::Vector2f& end, float max_speed)
+    : m_start(start), m_end(end), m_max_speed(max_speed), m_model(sf::PrimitiveType::Lines, 2)
 {
     sf::Vector2f diff = end - start;
     m_length = std::sqrt(diff.x * diff.x + diff.y * diff.y);
@@ -20,6 +20,9 @@ Road::Road(const sf::Vector2f& start, const sf::Vector2f& end)
         m_direction = { 0.f, 0.f };
     m_model[0] = sf::Vertex{ m_start };
     m_model[1] = sf::Vertex{ m_end };
+
+    if (m_max_speed < 10.f) m_max_speed = 10.f;
+
 }
 void Road::add(std::unique_ptr<Car> car)
 {
@@ -161,19 +164,26 @@ bool Road::operator==(const Road& other) const
 }
 float Road::get_travel_time() const
 {
-    // Logic for calculating time based on length and m_cars.size() will go here.
+    // 1. Base cost: Length / Speed Limit
+    // This makes the pathfinder prefer Highways (Speed 120) over Grid (Speed 40)
+    float base_time = m_length / m_max_speed;
 
+    // 2. Traffic Penalty (Dynamic A*)
+    // If the road is packed, it becomes "expensive"
+    const float PENALTY_PER_CAR = 0.5f; 
+    float density_penalty = 1.0f + (static_cast<float>(m_cars.size()) * PENALTY_PER_CAR);
+
+    // 3. Blockage Check
     if (auto end_junc = getEndJunction().lock())
     {
-        if (end_junc->get_light_state_for_road(shared_from_this()) != TrafficLight::State::Green)
+        // If the light is Red, add a heavy penalty so cars might reroute if possible
+        // (Optional: You can disable this if you want them to wait at lights)
+        if (end_junc->get_light_state_for_road(shared_from_this()) == TrafficLight::State::Red)
         {
-            return std::numeric_limits<float>::infinity();
+             // Add 5 seconds penalty for a red light
+            base_time += 5.0f; 
         }
     }
 
-    constexpr float TYPICAL_SPEED = 100.F;
-    const float base_time = m_length / TYPICAL_SPEED;
-    constexpr float PENALTY_PER_CAR = 0.25F;
-    const float density_penalty = 1.0f + (static_cast<float>(m_cars.size()) * PENALTY_PER_CAR);
     return base_time * density_penalty;
 }

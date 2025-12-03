@@ -9,7 +9,7 @@ class Junction;
 class Road : public std::enable_shared_from_this<Road>
 {
 public:
-    Road(const sf::Vector2f& start, const sf::Vector2f& end);
+    Road(const sf::Vector2f& start, const sf::Vector2f& end, float max_speed);
 
     void update(sf::Time elapsed);
     // Road geometry is drawn by DoubleRoad; this draws cars only
@@ -42,6 +42,7 @@ public:
 private:
     sf::Vector2f m_start, m_end, m_direction;
     float m_length;
+    float m_max_speed;
     sf::VertexArray m_model;
     std::vector<std::unique_ptr<Car>> m_cars;
     std::pair<std::weak_ptr<Junction>, std::weak_ptr<Junction>> m_junctions;
