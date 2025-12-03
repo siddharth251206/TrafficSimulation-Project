@@ -155,7 +155,7 @@ void load_map_from_file(TrafficMap& traffic_map, const std::string& filename)
                               << "' at line " << line_number << std::endl;
                     continue;
                 }
-                traffic_map.get_junction(junctions[junction_name])->install_light(sf::seconds(5));
+                traffic_map.get_junction(junctions[junction_name])->install_lights();
             }
             else
             {

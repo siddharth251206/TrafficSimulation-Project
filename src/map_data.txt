@@ -311,3 +311,6 @@ road lx2 se6 15 true
 
 lights se11
 lights temple_junction
+lights library_junction
+lights gajjar_junction
+lights swami_junction
