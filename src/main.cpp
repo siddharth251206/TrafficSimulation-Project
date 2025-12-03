@@ -4,7 +4,7 @@
 #include "traffic_map.hpp"
 #include "ux.hpp"
 #include "app_utility.hpp"
-
+#include "traffic_spawner.hpp"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
@@ -79,6 +79,12 @@ int main()
 
     UXController ux(window, camera_controller, traffic_map, &car_texture, &font);
 
+    TrafficSpawner spawner(traffic_map, &car_texture);
+    
+    // Tweak these to control density
+    spawner.set_max_cars(200);      
+    spawner.set_spawn_rate(0.3f);   // Fast spawn (approx 3 cars/sec) to fill big map
+
     // --- Main loop ---
     sf::Clock clock;
     while (window.isOpen())
@@ -112,46 +118,7 @@ int main()
         ux.update(deltaTime);
         ux.spawn_cars();
 
-        // --- Auto-spawn random traffic ---
-        // if (traffic_map.get_car_count() < max_cars
-        //     && spawn_timer.getElapsedTime().asSeconds() > 0.2f)
-        // {
-        //     if (auto start_road = traffic_map.get_random_road(),
-        //         end_road = traffic_map.get_random_road();
-        //         start_road && end_road)
-        //     {
-        //         float start_distance = RNG::instance().getFloat(0.f, start_road->getLength());
-        //         float end_distance   = RNG::instance().getFloat(0.f, end_road->getLength());
-
-        //         if (start_road == end_road)
-        //         {
-        //             if (end_distance > start_distance)
-        //             {
-        //                 auto car = std::make_unique<Car>(
-        //                     start_road, loaded ? &car_texture : nullptr, start_distance
-        //                 );
-        //                 car->set_destination({}, end_road, end_distance);
-        //                 start_road->add(std::move(car));
-        //             }
-        //         }
-        //         else if (auto start_junction = start_road->getEndJunction().lock(),
-        //                  end_junction   = end_road->getEndJunction().lock();
-        //                  start_junction && end_junction)
-        //         {
-        //             PathFinder pathfinder;
-        //             if (auto path = pathfinder.find_path(start_junction, end_junction);
-        //                 !path.empty() && path.back().lock() == end_road)
-        //             {
-        //                 auto car = std::make_unique<Car>(
-        //                     start_road, loaded ? &car_texture : nullptr, start_distance
-        //                 );
-        //                 car->set_destination(path, end_road, end_distance);
-        //                 start_road->add(std::move(car));
-        //             }
-        //         }
-        //     }
-        //     spawn_timer.restart();
-        // }
+        spawner.update(deltaTime);
         // --- Draw everything ---
         traffic_map.update(elapsed);
 

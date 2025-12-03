@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}_app
         pathfinder.cpp
         file_parse.cpp
         ux.cpp
+        traffic_spawner.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_app
