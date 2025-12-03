@@ -10,14 +10,25 @@ static constexpr float UI_TOP    =  44.f;   // top bar + padding
 
 CameraController::CameraController(float width, float height)
 {
-    m_camera = sf::View(sf::FloatRect(sf::Vector2f{ 0.f, 0.f }, sf::Vector2f{ width, height }));
-    m_camera.setCenter(sf::Vector2f(width / 2.f, height / 2.f));
-    m_max_zoom = std::max((MAP_MAX_X - MAP_MIN_X) / width, (MAP_MAX_Y - MAP_MIN_Y) / height);
+    // Initialize view at the center of the world
+    float centerX = (MAP_MIN_X + MAP_MAX_X) / 2.f;
+    float centerY = (MAP_MIN_Y + MAP_MAX_Y) / 2.f;
+    
+    m_camera = sf::View(sf::FloatRect(sf::Vector2f(0.f, 0.f), sf::Vector2f(width, height)));
+    m_camera.setCenter(sf::Vector2f(centerX, centerY));
 
-    m_zoomLevel = 1.5f; // zoomed-out default view (adjust as desired)
-    m_camera.setSize(sf::Vector2f(
-                static_cast<float>(width) * m_zoomLevel, static_cast<float>(height) * m_zoomLevel
-            ));
+    // Calculate the zoom needed to fit the ENTIRE map on screen
+    float zoomX = (MAP_MAX_X - MAP_MIN_X) / width;
+    float zoomY = (MAP_MAX_Y - MAP_MIN_Y) / height;
+    
+    // Choose the larger zoom factor to ensure no edges are cut off
+    m_max_zoom = std::max(zoomX, zoomY);
+
+    // FIX: Start at max zoom (fully zoomed out)
+    // Add a tiny buffer (1.1x) so the map edges aren't touching the window bezel
+    m_zoomLevel = m_max_zoom * 1.1f; 
+
+    m_camera.setSize(sf::Vector2f(width * m_zoomLevel, height * m_zoomLevel));
 }
 
 void CameraController::handle_zoom(
@@ -31,11 +42,10 @@ void CameraController::handle_zoom(
     sf::Vector2f worldPos = window.mapPixelToCoords(mousePos, m_camera);
 
     if (wheel->delta > 0)
-        m_zoomLevel = std::max(MIN_ZOOM, m_zoomLevel * (1.f - ZOOM_FACTOR));// Zoom in
+        m_zoomLevel = std::max(MIN_ZOOM, m_zoomLevel * (1.f - ZOOM_FACTOR)); // Zoom in
     else
-        m_zoomLevel = std::min(m_max_zoom, m_zoomLevel * (1.f + ZOOM_FACTOR));// Zoom out
+        m_zoomLevel = std::min(m_max_zoom, m_zoomLevel * (1.f + ZOOM_FACTOR)); // Zoom out
 
-    // Safety check for valid m_camera size
     if (m_zoomLevel > 0.f)
     {
         m_camera.setSize(
@@ -44,14 +54,12 @@ void CameraController::handle_zoom(
             )
         );
 
-        // Adjust m_camera to keep the mouse's world position fixed
         sf::Vector2f newWorldPos = window.mapPixelToCoords(mousePos, m_camera);
         sf::Vector2f offset = worldPos - newWorldPos;
         m_camera.move(offset);
     }
-    else// dead code, just defensive
+    else
     {
-        // Reset to default zoom if invalid
         m_zoomLevel = 1.f;
     }
 }
@@ -61,7 +69,6 @@ void CameraController::handle_mouse_drag(
     const std::optional<sf::Event> event
 )
 {
-    // Handle mouse m_dragging
     if (const auto* mbp = event->getIf<sf::Event::MouseButtonPressed>())
     {
         if (mbp->button == sf::Mouse::Button::Middle)
@@ -79,15 +86,18 @@ void CameraController::handle_mouse_drag(
     if (event->is<sf::Event::MouseMoved>() && m_dragging)
     {
         sf::Vector2i newPos = sf::Mouse::getPosition(window);
+        
+        // FIXED: Removed the 0.5f factor. 
+        // 1:1 movement means the map sticks exactly to the mouse cursor.
         sf::Vector2f delta(
-            static_cast<float>(m_lastMousePos.x - newPos.x) * m_zoomLevel
-                * 0.5f,// 0.5 for smooth movement
-            static_cast<float>(m_lastMousePos.y - newPos.y) * m_zoomLevel * 0.5f
+            static_cast<float>(m_lastMousePos.x - newPos.x) * m_zoomLevel,
+            static_cast<float>(m_lastMousePos.y - newPos.y) * m_zoomLevel
         );
         m_camera.move(delta);
         m_lastMousePos = newPos;
     }
 }
+
 void CameraController::handle_resize(unsigned int width, unsigned int height)
 {
     m_camera.setSize(sf::Vector2f{
@@ -98,16 +108,19 @@ void CameraController::handle_resize(unsigned int width, unsigned int height)
 
 void CameraController::handle_kb_panning(float deltaTime)
 {
-    // Smooth keyboard panning
+    // FIXED: Scale speed by zoom level. 
+    // Panning covers more ground when zoomed out, less when zoomed in.
+    float currentSpeed = PAN_SPEED * m_zoomLevel;
+
     sf::Vector2f panDelta(0.f, 0.f);
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-        panDelta.y -= PAN_SPEED * deltaTime;
+        panDelta.y -= currentSpeed * deltaTime;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-        panDelta.x -= PAN_SPEED * deltaTime;
+        panDelta.x -= currentSpeed * deltaTime;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-        panDelta.y += PAN_SPEED * deltaTime;
+        panDelta.y += currentSpeed * deltaTime;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-        panDelta.x += PAN_SPEED * deltaTime;
+        panDelta.x += currentSpeed * deltaTime;
 
     m_camera.move(panDelta);
 }
@@ -123,7 +136,7 @@ void CameraController::clamp_camera(const sf::RenderWindow& window)
     const float mapTop    = MAP_MIN_Y;
     const float mapBottom = MAP_MAX_Y;
 
-    // Convert fixed pixel margins into world units *only once* relative to current zoom
+    // Convert UI margins to world units
     float pixelsToWorldX = m_zoomLevel;
     float pixelsToWorldY = m_zoomLevel;
 
@@ -131,7 +144,7 @@ void CameraController::clamp_camera(const sf::RenderWindow& window)
     const float rightMarginWorld = UI_RIGHT * pixelsToWorldX;
     const float topMarginWorld   = UI_TOP   * pixelsToWorldY;
 
-    // Clamp camera to map bounds, respecting those margins
+    // Calculate valid center range
     const float minX = mapLeft   + halfSize.x + leftMarginWorld;
     const float maxX = mapRight  - halfSize.x - rightMarginWorld;
     const float minY = mapTop    + halfSize.y + topMarginWorld;
@@ -139,12 +152,13 @@ void CameraController::clamp_camera(const sf::RenderWindow& window)
 
     sf::Vector2f center = m_camera.getCenter();
 
-    // Prevent invalid clamp ranges
+    // Logic: If the view is smaller than the map, clamp to edges.
+    // If the view is BIGGER than the map (zoomed way out), center the map.
     if (minX <= maxX) center.x = std::clamp(center.x, minX, maxX);
-    else center.x = (mapLeft + mapRight) * 0.5f;
+    else center.x = (mapLeft + mapRight) * 0.5f + (leftMarginWorld - rightMarginWorld) * 0.5f;
 
     if (minY <= maxY) center.y = std::clamp(center.y, minY, maxY);
-    else center.y = (mapTop + mapBottom) * 0.5f;
+    else center.y = (mapTop + mapBottom) * 0.5f + topMarginWorld * 0.5f;
 
     m_camera.setCenter(center);
 }

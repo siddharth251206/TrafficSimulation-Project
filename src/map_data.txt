@@ -1,66 +1,98 @@
---- DOWNTOWN CORE (The Traffic Light Stress Test) ---
-junction Central_Plaza 650 400
-junction North_Ave 650 250
-junction South_Ave 650 550
-junction East_Ave 850 400
-junction West_Ave 450 400
+--- THE SPIDER WEB METROPOLIS (3000x3000) ---
 
---- INNER CITY CORNERS ---
-junction NE_Corner 850 250
-junction NW_Corner 450 250
-junction SE_Corner 850 550
-junction SW_Corner 450 550
+--- THE OUTER RING (The Beltway - Speed 130) ---
+junction Ring_N 1500 100
+junction Ring_NE 2500 500
+junction Ring_E 2900 1500
+junction Ring_SE 2500 2500
+junction Ring_S 1500 2900
+junction Ring_SW 500 2500
+junction Ring_W 100 1500
+junction Ring_NW 500 500
 
---- HIGHWAY RING ROAD (Fast Travel) ---
-junction Hwy_North 650 50
-junction Hwy_East 1100 400
-junction Hwy_South 650 750
-junction Hwy_West 200 400
+--- THE MIDDLE ARTERIALS (The Spokes - Speed 80) ---
+junction Mid_N 1500 800
+junction Mid_E 2200 1500
+junction Mid_S 1500 2200
+junction Mid_W 800 1500
 
---- SUBURBAN FEEDERS (Spawn Points) ---
-junction Suburb_N 650 0
-junction Suburb_E 1250 400
-junction Suburb_S 650 800
-junction Suburb_W 50 400
+--- THE DENSE CORE (Downtown - Speed 40) ---
+junction Core_Center 1500 1500
+junction Core_N 1500 1200
+junction Core_NE 1700 1300
+junction Core_E 1800 1500
+junction Core_SE 1700 1700
+junction Core_S 1500 1800
+junction Core_SW 1300 1700
+junction Core_W 1200 1500
+junction Core_NW 1300 1300
 
----------------- ROADS ----------------
+--- ROADS: OUTER RING ---
+road Ring_N Ring_NE 130 true
+road Ring_NE Ring_E 130 true
+road Ring_E Ring_SE 130 true
+road Ring_SE Ring_S 130 true
+road Ring_S Ring_SW 130 true
+road Ring_SW Ring_W 130 true
+road Ring_W Ring_NW 130 true
+road Ring_NW Ring_N 130 true
 
---- DOWNTOWN GRID (Slow, Speed 40) ---
-road West_Ave Central_Plaza 40 true
-road Central_Plaza East_Ave 40 true
-road North_Ave Central_Plaza 40 true
-road Central_Plaza South_Ave 40 true
+--- ROADS: THE CROSS (Highways cutting through) ---
+road Ring_N Mid_N 100 true
+road Mid_N Core_N 60 true
 
-road NW_Corner North_Ave 40 true
-road North_Ave NE_Corner 40 true
-road West_Ave NW_Corner 40 true
-road East_Ave NE_Corner 40 true
-road West_Ave SW_Corner 40 true
-road East_Ave SE_Corner 40 true
-road SW_Corner South_Ave 40 true
-road South_Ave SE_Corner 40 true
+road Ring_E Mid_E 100 true
+road Mid_E Core_E 60 true
 
---- ARTERIAL ROADS (Medium, Speed 70) ---
-road Hwy_North North_Ave 70 true
-road Hwy_South South_Ave 70 true
-road Hwy_East East_Ave 70 true
-road Hwy_West West_Ave 70 true
+road Ring_S Mid_S 100 true
+road Mid_S Core_S 60 true
 
---- HIGHWAY LOOP (Fast, Speed 120) ---
-road Hwy_West Hwy_North 120 true
-road Hwy_North Hwy_East 120 true
-road Hwy_East Hwy_South 120 true
-road Hwy_South Hwy_West 120 true
+road Ring_W Mid_W 100 true
+road Mid_W Core_W 60 true
 
---- SUBURB CONNECTORS ---
-road Suburb_N Hwy_North 60 true
-road Suburb_E Hwy_East 60 true
-road Suburb_S Hwy_South 60 true
-road Suburb_W Hwy_West 60 true
+--- ROADS: DIAGONAL FEEDERS (Connecting Ring to Mid) ---
+road Ring_NW Mid_N 80 true
+road Ring_NW Mid_W 80 true
+road Ring_NE Mid_N 80 true
+road Ring_NE Mid_E 80 true
+road Ring_SE Mid_E 80 true
+road Ring_SE Mid_S 80 true
+road Ring_SW Mid_S 80 true
+road Ring_SW Mid_W 80 true
 
---- TRAFFIC LIGHTS (The Smart Junctions) ---
-lights Central_Plaza
-lights North_Ave
-lights South_Ave
-lights East_Ave
-lights West_Ave
+--- ROADS: INNER ORBIT (Connecting Mids) ---
+road Mid_N Mid_E 70 true
+road Mid_E Mid_S 70 true
+road Mid_S Mid_W 70 true
+road Mid_W Mid_N 70 true
+
+--- ROADS: THE DENSE CORE GRID ---
+road Core_N Core_Center 40 true
+road Core_E Core_Center 40 true
+road Core_S Core_Center 40 true
+road Core_W Core_Center 40 true
+
+road Core_N Core_NE 40 true
+road Core_NE Core_E 40 true
+road Core_E Core_SE 40 true
+road Core_SE Core_S 40 true
+road Core_S Core_SW 40 true
+road Core_SW Core_W 40 true
+road Core_W Core_NW 40 true
+road Core_NW Core_N 40 true
+
+road Core_NW Core_Center 40 true
+road Core_NE Core_Center 40 true
+road Core_SE Core_Center 40 true
+road Core_SW Core_Center 40 true
+
+--- TRAFFIC LIGHTS (The Core is controlled) ---
+lights Core_Center
+lights Core_N
+lights Core_E
+lights Core_S
+lights Core_W
+lights Mid_N
+lights Mid_E
+lights Mid_S
+lights Mid_W
